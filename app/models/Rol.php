@@ -1,16 +1,23 @@
 <?php
 declare(strict_types=1);
 
-/**
- * MODELO Rol — solo habla con la tabla "roles". No imprime HTML.
- */
+// MODELO Rol
+
 final class Rol
 {
     public const ADMINISTRADOR = 1;
-    public const EDITOR        = 2;
-    public const LECTOR        = 3;
+    public const ASESOR        = 2;
+    public const MECANICO      = 3;
+    public const HOJALATERO    = 4;
 
-    public const POR_DEFECTO = self::LECTOR;
+    // El personal nuevo entra como asesor; el cliente no se registra aquí.
+    public const POR_DEFECTO = self::ASESOR;
+
+    /** Los que reciben autos asignados y trabajan en ellos. */
+    public const DE_TALLER = [self::MECANICO, self::HOJALATERO];
+
+    /** Los que atienden al cliente y manejan el alta de vehículos. */
+    public const DE_MOSTRADOR = [self::ADMINISTRADOR, self::ASESOR];
 
     private PDO $db;
 

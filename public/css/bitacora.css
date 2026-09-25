@@ -1,0 +1,178 @@
+/* Pantalla de bitácora de un auto (administrador, mecánico y cliente) */
+
+/* 1. Reparto de la pantalla */
+.bitacora {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+    gap: var(--hueco);
+    align-items: start;
+}
+
+.bitacora__lateral {
+    position: sticky;
+    top: 92px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--hueco);
+}
+
+
+/* 2. Ficha del auto */
+.ficha {
+    padding-inline: var(--gutter);
+}
+
+.ficha__fila {
+    display: grid;
+    grid-template-columns: 104px 1fr;
+    gap: 16px;
+    padding-block: 13px;
+    font-size: .8125rem;
+    border-bottom: 1px solid var(--color-borde);
+}
+
+.ficha__fila:last-child {
+    border-bottom: none;
+}
+
+.ficha dt {
+    font-weight: 500;
+    color: var(--color-texto-tenue);
+}
+
+.ficha dd {
+    font-weight: 500;
+    overflow-wrap: anywhere;
+}
+
+/* Segunda línea de un dato: el teléfono del cliente, el color y las placas */
+.ficha__sub {
+    display: block;
+    margin-top: 2px;
+    font-size: .75rem;
+    font-weight: 400;
+    color: var(--color-texto-suave);
+}
+
+
+/* ---------- 3. Línea de tiempo ----------
+   Una entrada por reporte, de la más reciente a la más antigua, unidas por
+   una raya vertical con un punto del color del área. */
+.linea {
+    list-style: none;
+    padding: var(--gutter);
+}
+
+.linea__entrada {
+    position: relative;
+    padding-left: 30px;
+    padding-bottom: 30px;
+}
+
+/* Raya que une una entrada con la siguiente */
+.linea__entrada::before {
+    content: "";
+    position: absolute;
+    left: 5px;
+    top: 16px;
+    bottom: -6px;
+    width: 2px;
+    background-color: var(--color-borde);
+}
+
+.linea__entrada:last-child {
+    padding-bottom: 0;
+}
+
+.linea__entrada:last-child::before {
+    display: none;
+}
+
+.linea__punto {
+    position: absolute;
+    left: 0;
+    top: 7px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: var(--color-texto-tenue);
+    box-shadow: 0 0 0 3px var(--color-superficie);   /* separa el punto de la raya */
+}
+
+.linea__punto--area1 { background-color: #64748b; }
+.linea__punto--area2 { background-color: #2563eb; }
+.linea__punto--area3 { background-color: #d97706; }
+.linea__punto--area4 { background-color: var(--color-ok); }
+.linea__punto--area5 { background-color: var(--negro); }
+
+/* Primera fila de la entrada: área y fecha, y el botón de borrar del admin */
+.linea__cabecera {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.linea__fecha {
+    margin-left: 10px;
+    font-size: .75rem;
+    color: var(--color-texto-tenue);
+    font-variant-numeric: tabular-nums;
+}
+
+.linea__texto {
+    margin-top: 12px;
+    font-size: .875rem;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+}
+
+/* Foto del reporte: miniatura con borde que abre en grande al hacer clic */
+.linea__foto {
+    display: block;
+    max-width: 420px;
+    margin-top: 14px;
+    overflow: hidden;
+    background-color: var(--color-sutil);
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radio);
+}
+
+.linea__foto img {
+    display: block;
+    width: 100%;
+    max-height: 320px;
+    object-fit: cover;
+}
+
+/* Quién escribió el reporte */
+.linea__autor {
+    margin-top: 12px;
+    font-size: .75rem;
+    color: var(--color-texto-tenue);
+}
+
+
+/* ---------- 4. Responsivo ----------
+   En pantalla angosta la ficha deja de ser columna fija y todo se apila. */
+@media (max-width: 1000px) {
+    .bitacora {
+        grid-template-columns: 1fr;
+    }
+
+    .bitacora__lateral {
+        position: static;
+    }
+}
+
+@media (max-width: 760px) {
+    .ficha__fila {
+        grid-template-columns: 1fr;
+        gap: 2px;
+    }
+
+    .linea__cabecera {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}

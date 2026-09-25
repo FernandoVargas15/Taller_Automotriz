@@ -1,0 +1,805 @@
+/* Hoja principal del panel (administrador y mecánico) */
+
+/* 1. Base */
+:root {
+    --negro:              #0b0b0d;
+    --negro-suave:        #1c1c21;
+
+    --color-fondo:        #f4f4f5;
+    --color-superficie:   #ffffff;
+    --color-sutil:        #fafafa;
+    --color-borde:        #e4e4e7;
+    --color-borde-fuerte: #d4d4d8;
+
+    --color-texto:        #0b0b0d;
+    --color-texto-suave:  #52525b;
+    --color-texto-tenue:  #a1a1aa;
+
+    --color-acento:       #e11d2b;
+    --color-acento-hover: #c81424;
+    --color-acento-suave: #fde8ea;
+
+    --color-ok:    #15803d;
+    --color-error: #b91c1c;
+
+    --gutter: 24px;   
+    --hueco:  24px;
+    --radio:  6px;
+
+    --fuente: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --fuente-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: var(--fuente);
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--color-texto);
+    background-color: var(--color-fondo);
+    -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, p, dl, dd, ol, ul {
+    margin: 0;
+}
+
+/* Nada subrayado: los enlaces se ven como texto o como botón */
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+code {
+    font-family: var(--fuente-mono);
+}
+
+
+/* 2. Estructura de la página */
+.contenido {
+    display: flex;
+    flex-direction: column;
+    gap: var(--hueco);
+    padding: 32px 32px 72px;
+}
+
+/* Cabecera de cada pantalla: título y nota a la izquierda, botones a la derecha */
+.pagina__cabecera {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 4px;
+}
+
+.pagina__titulo {
+    font-size: 1.375rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+}
+
+.pagina__nota {
+    margin-top: 6px;
+    font-size: .875rem;
+    color: var(--color-texto-suave);
+}
+
+/* Cifras dentro de la nota de la cabecera (panel del administrador) */
+.pagina__nota strong {
+    font-weight: 600;
+    color: var(--color-texto);
+}
+
+.pagina__acciones {
+    display: flex;
+    flex-shrink: 0;
+    gap: 8px;
+}
+
+
+/* ---------- 3. Barra negra superior ----------
+   Tres zonas: marca · pestañas del rol · usuario. Se queda fija al
+   desplazar y marca la pestaña activa con una línea roja. */
+.encabezado {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: var(--negro);
+    color: #ffffff;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, .07);
+}
+
+.encabezado__interior {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 32px;
+    height: 68px;
+    padding-inline: 32px;
+}
+
+.encabezado__marca {
+    justify-self: start;
+    font-size: .9375rem;
+    font-weight: 600;
+    letter-spacing: .01em;
+    color: #ffffff;
+}
+
+/* Pestañas: ocupan todo el alto de la barra para que el subrayado quede abajo */
+.pestanas {
+    display: flex;
+    align-self: stretch;
+}
+
+.pestanas__enlace {
+    display: flex;
+    align-items: center;
+    padding-inline: 18px;
+    font-size: .875rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, .58);
+    border-bottom: 2px solid transparent;
+    transition: color .15s ease, background-color .15s ease;
+}
+
+.pestanas__enlace:hover {
+    color: #ffffff;
+    background-color: rgba(255, 255, 255, .06);
+}
+
+.pestanas__enlace.es-activa {
+    color: #ffffff;
+    border-bottom-color: var(--color-acento);
+}
+
+/* Usuario: iniciales en un círculo, nombre y rol, y salida delineada */
+.usuario {
+    grid-column: 3;
+    justify-self: end;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.usuario__avatar {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    font-size: .75rem;
+    font-weight: 700;
+    letter-spacing: .02em;
+    background-color: var(--color-acento);
+    border-radius: 50%;
+}
+
+.usuario__datos {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.3;
+}
+
+.usuario__nombre {
+    font-size: .875rem;
+    font-weight: 600;
+}
+
+.usuario__rol {
+    font-size: .75rem;
+    color: rgba(255, 255, 255, .55);
+}
+
+.usuario__salir {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: 8px;
+    padding: 8px 14px;
+    font-size: .8125rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, .85);
+    border: 1px solid rgba(255, 255, 255, .2);
+    border-radius: var(--radio);
+    transition: color .15s ease, background-color .15s ease, border-color .15s ease;
+}
+
+.usuario__salir:hover {
+    color: #ffffff;
+    background-color: rgba(255, 255, 255, .1);
+    border-color: rgba(255, 255, 255, .38);
+}
+
+.usuario__salir svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+
+/* ---------- 4. Avisos ----------
+   Mensaje de un solo uso que aparece arriba del contenido después de
+   guardar, borrar o fallar una validación. */
+.aviso {
+    padding: 12px 16px;
+    font-size: .8125rem;
+    border: 1px solid transparent;
+    border-radius: var(--radio);
+}
+
+.aviso__mensaje strong {
+    font-weight: 600;
+}
+
+.aviso--exito {
+    color: var(--color-ok);
+    background-color: #dcfce7;
+    border-color: #86efac;
+}
+
+.aviso--error {
+    color: var(--color-error);
+    background-color: #fee2e2;
+    border-color: #fca5a5;
+}
+
+
+/* ---------- 5. Tarjetas ----------
+   Toda la información vive dentro de una tarjeta blanca: cabecera con
+   título opcional y, debajo, una tabla o bloques de formulario. */
+.tarjeta {
+    background-color: var(--color-superficie);
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radio);
+    overflow: hidden;
+}
+
+.tarjeta__cabecera {
+    padding: 18px var(--gutter);
+    border-bottom: 1px solid var(--color-borde);
+}
+
+/* Variante con algo a la derecha: un contador, un buscador o un botón */
+.tarjeta__cabecera--fila {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.tarjeta__titulo {
+    font-size: .9375rem;
+    font-weight: 600;
+}
+
+.tarjeta__nota {
+    margin-top: 4px;
+    font-size: .8125rem;
+    color: var(--color-texto-suave);
+}
+
+.contador {
+    flex-shrink: 0;
+    font-size: .75rem;
+    font-weight: 600;
+    color: var(--color-texto-tenue);
+    font-variant-numeric: tabular-nums;
+}
+
+/* Cifras del panel del administrador. Cada una es un nombre, un número y una
+   barra que enseña de qué está compuesto ese número, con su leyenda debajo.
+   Las tres van en fila mientras quepan. */
+.distribuciones {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 28px 44px;
+}
+
+.distribucion__nombre {
+    font-size: .8125rem;
+    color: var(--color-texto-suave);
+}
+
+.distribucion__total {
+    margin-top: 2px;
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.025em;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Barra: un trozo por parte, del ancho que le toca por porcentaje */
+/* Sin separación entre trozos: así los anchos suman exactamente el 100% */
+.carga {
+    display: flex;
+    height: 8px;
+    margin-top: 14px;
+    overflow: hidden;
+    background-color: var(--color-fondo);
+    border-radius: 999px;
+}
+
+.carga__parte {
+    height: 100%;
+    transition: width .3s ease;
+}
+
+/* Leyenda: el mismo color en un punto, el nombre de la parte y su número */
+.leyenda {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 20px;
+    margin-top: 14px;
+    padding: 0;
+    list-style: none;
+}
+
+.leyenda__parte {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: .75rem;
+}
+
+.leyenda__punto {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.leyenda__nombre {
+    color: var(--color-texto-suave);
+}
+
+.leyenda__valor {
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Colores de cada parte: los mismos en la barra y en su punto de la leyenda.
+   Las áreas repiten el color de sus etiquetas para que se reconozcan. */
+.carga__parte--area1,     .leyenda__punto--area1     { background-color: #94a3b8; }   /* Recepción */
+.carga__parte--area2,     .leyenda__punto--area2     { background-color: #2563eb; }   /* Mecánica */
+.carga__parte--area3,     .leyenda__punto--area3     { background-color: #d97706; }   /* Pintura */
+.carga__parte--area4,     .leyenda__punto--area4     { background-color: #16a34a; }   /* Terminado */
+.carga__parte--taller,    .leyenda__punto--taller    { background-color: #334155; }   /* Aún en el taller */
+.carga__parte--entregado, .leyenda__punto--entregado { background-color: #cbd5e1; }   /* Ya entregado */
+.carga__parte--rol1,      .leyenda__punto--rol1      { background-color: var(--color-acento); }   /* Administrador */
+.carga__parte--rol2,      .leyenda__punto--rol2      { background-color: #334155; }   /* Asesor de Servicio */
+.carga__parte--rol3,      .leyenda__punto--rol3      { background-color: #2563eb; }   /* Mecánico */
+.carga__parte--rol4,      .leyenda__punto--rol4      { background-color: #d97706; }   /* Hojalatero / Pintor */
+
+/* Sin datos todavía: mensaje centrado en el hueco de la tarjeta */
+.vacio {
+    padding: 64px var(--gutter);
+    text-align: center;
+    font-size: .875rem;
+    color: var(--color-texto-tenue);
+}
+
+
+/* ---------- 6. Formularios ----------
+   Un formulario es una pila de bloques dentro de una tarjeta. Cada bloque
+   agrupa campos relacionados (Cliente, Vehículo, Trabajo) y se separa del
+   siguiente con una línea de borde a borde; el último lleva los botones. */
+.bloque {
+    padding: 26px var(--gutter);
+}
+
+.bloque + .bloque {
+    border-top: 1px solid var(--color-borde);
+}
+
+.bloque__titulo {
+    font-size: .875rem;
+    font-weight: 600;
+}
+
+.bloque__nota {
+    margin-top: 3px;
+    font-size: .8125rem;
+    color: var(--color-texto-suave);
+}
+
+.bloque__titulo + .campos,
+.bloque__nota + .campos {
+    margin-top: 20px;
+}
+
+/* Barra de botones al pie del formulario, sobre fondo gris claro */
+.bloque--acciones {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-block: 18px;
+    background-color: var(--color-sutil);
+}
+
+/* Rejilla de campos: tantas columnas como quepan sin estirar los controles.
+   Llena el ancho en pantalla grande y se vuelve una sola columna en el
+   panel lateral de la bitácora o en el móvil, sin reglas extra. */
+.campos {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 22px var(--gutter);
+}
+
+.campo__etiqueta {
+    display: block;
+    margin-bottom: 8px;
+    font-size: .8125rem;
+    font-weight: 500;
+}
+
+.campo__requerido {
+    color: var(--color-acento);
+}
+
+.campo__control {
+    width: 100%;
+    padding: 11px 13px;
+    font-family: inherit;
+    font-size: .875rem;
+    color: var(--color-texto);
+    background-color: var(--color-superficie);
+    border: 1px solid var(--color-borde-fuerte);
+    border-radius: var(--radio);
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.campo__control::placeholder {
+    color: var(--color-texto-tenue);
+}
+
+.campo__control:focus {
+    outline: none;
+    border-color: var(--negro);
+    box-shadow: 0 0 0 3px rgba(11, 11, 13, .08);
+}
+
+.campo__control.es-invalido {
+    border-color: var(--color-error);
+}
+
+/* Flecha propia del <select> para que no dependa del navegador */
+select.campo__control {
+    appearance: none;
+    padding-right: 34px;
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%2352525b' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 13px center;
+}
+
+textarea.campo__control {
+    min-height: 104px;
+    line-height: 1.55;
+    resize: vertical;
+}
+
+/* El selector de foto se ve como los demás controles */
+.campo__control--archivo {
+    padding: 8px 13px;
+    cursor: pointer;
+}
+
+.campo__control--archivo::file-selector-button {
+    margin-right: 12px;
+    padding: 5px 12px;
+    font-family: inherit;
+    font-size: .75rem;
+    font-weight: 600;
+    color: var(--color-texto);
+    background-color: var(--color-fondo);
+    border: 1px solid var(--color-borde-fuerte);
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+/* Texto bajo el campo: ayuda en gris, error en rojo */
+.campo__ayuda,
+.campo__error {
+    margin-top: 7px;
+    font-size: .75rem;
+    line-height: 1.45;
+}
+
+.campo__ayuda { color: var(--color-texto-tenue); }
+.campo__error { color: var(--color-error); }
+
+/* Botones: el mismo tamaño y aspecto para <button> y para <a> */
+.boton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 10px 18px;
+    font-family: inherit;
+    font-size: .8125rem;
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+    border: 1px solid transparent;
+    border-radius: var(--radio);
+    cursor: pointer;
+    transition: background-color .15s ease, border-color .15s ease, color .15s ease;
+}
+
+.boton--pequeno {
+    padding: 7px 12px;
+    font-size: .75rem;
+}
+
+.boton--primario {
+    color: #ffffff;
+    background-color: var(--color-acento);
+}
+
+.boton--primario:hover {
+    background-color: var(--color-acento-hover);
+}
+
+.boton--suave {
+    color: var(--color-texto);
+    background-color: var(--color-superficie);
+    border-color: var(--color-borde-fuerte);
+}
+
+.boton--suave:hover {
+    background-color: var(--color-fondo);
+    border-color: var(--negro);
+}
+
+/* Acciones destructivas: neutras, y solo al pasar el ratón avisan en rojo */
+.boton--peligro {
+    color: var(--color-error);
+    background-color: var(--color-superficie);
+    border-color: var(--color-borde-fuerte);
+}
+
+.boton--peligro:hover {
+    color: #ffffff;
+    background-color: var(--color-error);
+    border-color: var(--color-error);
+}
+
+.boton:focus-visible {
+    outline: 2px solid var(--negro);
+    outline-offset: 2px;
+}
+
+/* Buscador de la tabla de vehículos: campo y botón en línea */
+.buscador {
+    display: flex;
+    flex-shrink: 0;
+    gap: 8px;
+}
+
+.buscador__control {
+    width: 280px;
+    padding-block: 9px;
+}
+
+
+/* ---------- 7. Tablas ----------
+   Listados de usuarios y vehículos: encabezado gris, filas separadas por
+   una línea y la última columna con los botones de cada fila. */
+.tabla__envoltorio {
+    overflow-x: auto;
+}
+
+.tabla {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .8125rem;
+}
+
+.tabla th {
+    padding: 12px var(--gutter);
+    font-size: .6875rem;
+    font-weight: 600;
+    text-align: left;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    white-space: nowrap;
+    color: var(--color-texto-tenue);
+    background-color: var(--color-sutil);
+    border-bottom: 1px solid var(--color-borde);
+}
+
+.tabla td {
+    padding: 14px var(--gutter);
+    border-bottom: 1px solid var(--color-borde);
+    vertical-align: middle;   /* botones y etiquetas alineados con el texto */
+}
+
+.tabla tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.tabla tbody tr:hover {
+    background-color: var(--color-sutil);
+}
+
+.celda--fuerte { font-weight: 600; }
+
+.celda--tenue {
+    color: var(--color-texto-suave);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.mono {
+    font-family: var(--fuente-mono);
+    font-size: .6875rem;
+}
+
+/* Texto secundario dentro de una celda: "(tú)", el año, el teléfono debajo */
+.celda__nota {
+    margin-left: 4px;
+    font-weight: 400;
+    color: var(--color-texto-tenue);
+}
+
+.celda__linea {
+    display: block;
+    margin-top: 3px;
+    font-size: .75rem;
+}
+
+/* Última columna: los botones de la fila, juntos y pegados a la derecha */
+.celda--acciones {
+    width: 1%;              /* solo lo que ocupan los botones */
+    text-align: right;
+    white-space: nowrap;
+}
+
+.acciones {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+}
+
+.acciones form {
+    display: flex;
+    margin: 0;
+}
+
+/* Fila de un usuario desactivado o de un auto ya entregado */
+.fila--inactiva td:not(.celda--acciones) {
+    color: var(--color-texto-tenue);
+}
+
+/* Estado del personal: punto de color + texto */
+.estado {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: .8125rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.estado::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: currentColor;
+}
+
+.estado--activo   { color: var(--color-ok); }
+.estado--inactivo { color: var(--color-texto-tenue); }
+
+/* Etiqueta redonda para el rol y para el área del auto */
+.etiqueta {
+    display: inline-block;
+    padding: 3px 10px;
+    font-size: .6875rem;
+    font-weight: 600;
+    white-space: nowrap;
+    color: var(--color-texto-suave);
+    background-color: var(--color-fondo);
+    border: 1px solid var(--color-borde-fuerte);
+    border-radius: 999px;
+}
+
+/* Rol del personal: el administrador en rojo y cada oficio con su tono */
+.etiqueta--rol1 { color: var(--color-acento); background-color: var(--color-acento-suave); border-color: #f9b4ba; }   /* Administrador */
+.etiqueta--rol2 { color: #334155;             background-color: #f1f5f9;                  border-color: #cbd5e1; }   /* Asesor de Servicio */
+.etiqueta--rol3 { color: #1d4ed8;             background-color: #dbeafe;                  border-color: #93c5fd; }   /* Mecánico */
+.etiqueta--rol4 { color: #b45309;             background-color: #fef3c7;                  border-color: #fcd34d; }   /* Hojalatero / Pintor */
+
+/* Cada paso del proceso con su color */
+.etiqueta--area1 { color: #475569;           background-color: #f1f5f9;   border-color: #cbd5e1; }   /* Recepción */
+.etiqueta--area2 { color: #1d4ed8;           background-color: #dbeafe;   border-color: #93c5fd; }   /* Mecánica */
+.etiqueta--area3 { color: #b45309;           background-color: #fef3c7;   border-color: #fcd34d; }   /* Pintura */
+.etiqueta--area4 { color: var(--color-ok);   background-color: #dcfce7;   border-color: #86efac; }   /* Terminado */
+.etiqueta--area5 { color: var(--color-texto-tenue); background-color: transparent; border-color: var(--color-borde-fuerte); }   /* Entregado */
+
+
+/* ---------- 8. Responsivo ----------
+   En pantalla angosta la barra superior pasa a dos filas, y los botones
+   de cabecera y de cada fila se apilan a ancho completo. */
+@media (max-width: 760px) {
+
+    :root {
+        --gutter: 18px;
+    }
+
+    .contenido {
+        padding: 22px 18px 56px;
+    }
+
+    .encabezado__interior {
+        grid-template-columns: 1fr auto;
+        grid-template-rows: auto auto;
+        gap: 16px;
+        height: auto;
+        padding-inline: 18px;
+    }
+
+    .encabezado__marca { padding-block: 16px; }
+
+    .usuario {
+        grid-column: 2;
+        grid-row: 1;
+    }
+
+    .usuario__datos,
+    .usuario__salir span { display: none; }   /* solo avatar e icono */
+
+    .pestanas {
+        grid-column: 1 / -1;
+        grid-row: 2;
+        margin-inline: -18px;
+        padding-inline: 18px;
+        overflow-x: auto;
+    }
+
+    .pestanas__enlace { padding-block: 10px; }
+
+    .pagina__cabecera,
+    .tarjeta__cabecera--fila {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+
+    .pagina__acciones .boton,
+    .bloque--acciones .boton {
+        flex: 1;
+    }
+
+    .buscador__control {
+        width: auto;
+        flex: 1;
+    }
+
+    /* Los botones de cada fila se apilan */
+    .celda--acciones {
+        width: auto;
+    }
+
+    .acciones {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .acciones form,
+    .acciones .boton {
+        width: 100%;
+    }
+}

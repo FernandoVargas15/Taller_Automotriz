@@ -1,0 +1,76 @@
+/* Pantalla de reportes: selector de periodo y cifras de la vista previa */
+
+/* Los tres tipos de corte como botones, no como una lista de radios sueltos.
+   El <input> sigue ahí (funciona sin JavaScript y con teclado), solo está oculto. */
+.opciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.opcion {
+    display: inline-flex;
+    align-items: center;
+    padding: 9px 18px;
+    border: 1px solid var(--color-borde-fuerte);
+    border-radius: var(--radio);
+    background-color: var(--color-superficie);
+    font-size: .875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color .15s, border-color .15s, color .15s;
+}
+
+.opcion:hover {
+    border-color: var(--color-texto-suave);
+}
+
+.opcion input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.opcion.es-activa {
+    border-color: var(--color-acento);
+    background-color: var(--color-acento-suave);
+    color: var(--color-acento-hover);
+}
+
+/* El foco del teclado tiene que verse: el input está oculto, así que lo marca la etiqueta */
+.opcion:focus-within {
+    outline: 2px solid var(--color-acento);
+    outline-offset: 2px;
+}
+
+/* Las cuatro cifras del periodo, las mismas que encabezan el PDF */
+.cifras {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 1px;
+    background-color: var(--color-borde);
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radio);
+    overflow: hidden;
+}
+
+.cifra {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 16px 18px;
+    background-color: var(--color-superficie);
+}
+
+.cifra__valor {
+    font-size: 1.75rem;
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -.02em;
+}
+
+.cifra__nombre {
+    font-size: .8125rem;
+    color: var(--color-texto-suave);
+}

@@ -83,4 +83,12 @@ final class Config
 
         return $valor;
     }
+
+    // Igual que en Database: la clase no se instancia, ni se copia, ni se deserializa
+    private function __clone() {}
+
+    public function __wakeup(): void
+    {
+        throw new RuntimeException('Config no se puede deserializar: es una clase estática.');
+    }
 }

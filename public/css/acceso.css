@@ -1,0 +1,279 @@
+/* Pantallas de entrada al sistema: login del personal y consulta del cliente (las dos son iguales) */
+
+/* 1. Base */
+:root {
+    --acceso-texto:        #f4f4f5;
+    --acceso-texto-suave:  #a1a1aa;
+    --acceso-texto-tenue:  #71717a;
+    --acceso-linea:        rgba(255, 255, 255, .18);
+    --acceso-linea-foco:   rgba(255, 255, 255, .7);
+    --acceso-tarjeta:      rgba(20, 20, 24, .68);
+    --acceso-borde:        rgba(255, 255, 255, .08);
+
+    --acceso-rojo:         #e11d2b;
+    --acceso-rojo-hover:   #c81424;
+    --acceso-azul:         #5b9cf6;
+    --acceso-error:        #f87171;
+    --acceso-ok:           #86efac;
+
+    --fuente: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+body.auth {
+    margin: 0;
+    min-height: 100vh;
+    font-family: var(--fuente);
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--acceso-texto);
+    background-color: #0b0b0d;
+    -webkit-font-smoothing: antialiased;
+}
+
+h1, p {
+    margin: 0;
+}
+
+/* Foto del taller, desenfocada y oscurecida para que el texto se lea */
+.auth__fondo {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background-size: cover;
+    background-position: center;
+    filter: blur(2px) brightness(.55) saturate(.85);
+    transform: scale(1.03);   /* oculta el borde claro que deja el desenfoque */
+}
+
+.auth__fondo::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, rgba(0, 0, 0, .15) 0%, rgba(0, 0, 0, .65) 100%);
+}
+
+/* La tarjeta va centrada en la pantalla, con aire en los bordes */
+.auth__centro {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 40px 16px;
+}
+
+
+/* ---------- 2. Tarjeta ----------
+   Cristal oscuro sobre la foto: título, nota y el formulario. */
+.tarjeta-acceso {
+    width: 100%;
+    max-width: 480px;
+    padding: 44px 40px 36px;
+    background-color: var(--acceso-tarjeta);
+    border: 1px solid var(--acceso-borde);
+    border-radius: 12px;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, .55);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+}
+
+.tarjeta-acceso__titulo {
+    font-size: 1.25rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    text-align: center;
+}
+
+.tarjeta-acceso__nota {
+    margin-top: 8px;
+    font-size: .875rem;
+    color: var(--acceso-texto-suave);
+    text-align: center;
+}
+
+/* Mensaje de error o de éxito que llega desde el controlador */
+.tarjeta-acceso__aviso {
+    margin-top: 28px;
+    padding: 12px 15px;
+    font-size: .8125rem;
+    border: 1px solid transparent;
+    border-radius: 6px;
+}
+
+.tarjeta-acceso__aviso--error {
+    color: var(--acceso-error);
+    background-color: rgba(248, 113, 113, .08);
+    border-color: rgba(248, 113, 113, .25);
+}
+
+.tarjeta-acceso__aviso--exito {
+    color: var(--acceso-ok);
+    background-color: rgba(134, 239, 172, .08);
+    border-color: rgba(134, 239, 172, .25);
+}
+
+
+/* ---------- 3. Campos ----------
+   Sin caja: solo una línea abajo que se ilumina al escribir, con un icono
+   delante que dice de qué es el campo. */
+.formulario-acceso {
+    margin-top: 32px;
+}
+
+.campo-acceso + .campo-acceso {
+    margin-top: 24px;
+}
+
+.campo-acceso__etiqueta {
+    display: block;
+    margin-bottom: 6px;
+    font-size: .8125rem;
+    color: var(--acceso-texto-suave);
+}
+
+.campo-acceso__linea {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid var(--acceso-linea);
+    transition: border-color .15s ease;
+}
+
+.campo-acceso__linea:focus-within {
+    border-bottom-color: var(--acceso-linea-foco);
+}
+
+.campo-acceso__linea.es-invalido {
+    border-bottom-color: var(--acceso-error);
+}
+
+.campo-acceso__icono {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: var(--acceso-texto-suave);
+    stroke-width: 1.75;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.campo-acceso__control {
+    flex: 1;
+    min-width: 0;
+    padding: 12px 0;
+    font-family: inherit;
+    font-size: 1rem;
+    color: var(--acceso-texto);
+    background: transparent;
+    border: none;
+    outline: none;
+}
+
+.campo-acceso__control::placeholder {
+    color: var(--acceso-texto-tenue);
+}
+
+/* Evita el fondo amarillo que Chrome pone al autocompletar */
+.campo-acceso__control:-webkit-autofill {
+    -webkit-text-fill-color: var(--acceso-texto);
+    -webkit-box-shadow: 0 0 0 1000px #17171b inset;
+    transition: background-color 5000s ease-in-out 0s;
+}
+
+.campo-acceso__error {
+    margin-top: 6px;
+    font-size: .75rem;
+    color: var(--acceso-error);
+}
+
+
+/* ---------- 4. Botón de entrar ----------
+   Ocupa todo el ancho de la tarjeta; la flecha se desplaza al pasar el ratón. */
+.formulario-acceso__opciones {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 16px;
+    font-size: .8125rem;
+}
+
+.boton-acceso {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    margin-top: 28px;
+    padding: 16px 20px;
+    font-family: inherit;
+    font-size: .9375rem;
+    font-weight: 600;
+    color: #ffffff;
+    background-color: var(--acceso-rojo);
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color .15s ease, transform .1s ease;
+}
+
+.boton-acceso:hover {
+    background-color: var(--acceso-rojo-hover);
+}
+
+.boton-acceso:active {
+    transform: translateY(1px);
+}
+
+.boton-acceso:focus-visible {
+    outline: 2px solid #ffffff;
+    outline-offset: 2px;
+}
+
+.boton-acceso svg {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.25;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: transform .15s ease;
+}
+
+.boton-acceso:hover svg {
+    transform: translateX(3px);
+}
+
+.enlace-acceso {
+    color: var(--acceso-texto);
+    transition: color .15s ease;
+}
+
+.enlace-acceso:hover {
+    color: #ffffff;
+}
+
+.enlace-acceso--acento {
+    color: var(--acceso-azul);
+    font-weight: 500;
+}
+
+
+/* ---------- 5. Responsivo ---------- */
+@media (max-width: 600px) {
+    .tarjeta-acceso {
+        padding: 34px 24px 26px;
+        border-radius: 10px;
+    }
+
+    .formulario-acceso {
+        margin-top: 26px;
+    }
+}

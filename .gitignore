@@ -2,3 +2,13 @@
 .DS_Store
 *.log
 sql/
+
+# Fotos de la bitácora subidas por el personal
+public/subidas/*
+!public/subidas/.gitkeep
+
+# Caché de métricas que tFPDF genera sola la primera vez que usa una fuente
+app/libs/tfpdf/font/unifont/*.mtx.php
+app/libs/tfpdf/font/unifont/*.cw.dat
+app/libs/tfpdf/font/unifont/*.cw127.php
+app/libs/tfpdf/tfpdf.txt

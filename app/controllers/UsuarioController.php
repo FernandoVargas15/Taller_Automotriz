@@ -1,167 +1,235 @@
 <?php
 declare(strict_types=1);
 
-/**
- * CONTROLADOR - recibe la petición, le pide al Modelo que valide y guarde, y le entrega los datos a la Vista
- */
-final class UsuarioController
+// CONTROLADOR - gestión del personal del taller
+
+final class UsuarioController extends Controlador
 {
-    private Usuario $modeloUsuario;
-    private Rol $modeloRol;
+    private const LISTA = '/admin/usuarios';
 
-    /** Enrutador mínimo: GET muestra la página, POST procesa el formulario. */
-    public function manejarPeticion(): void
+    private Usuario $usuarios;
+    private Rol $roles;
+    private SesionActiva $sesiones;
+
+    public function __construct()
     {
-        $this->modeloUsuario = new Usuario();
-        $this->modeloRol     = new Rol();
+        $this->requerirAdmin();
 
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $this->registrar();
-            return;
-        }
-
-        $this->index();
+        $this->usuarios = new Usuario();
+        $this->roles    = new Rol();
+        $this->sesiones = new SesionActiva();
     }
 
-    // Acciones
-
-    /** GET: formulario y tabla de registrados */
-    private function index(): void
+    /** GET admin/usuarios: tabla de todo el personal con sus acciones */
+    public function index(): void
     {
-        $this->render('usuarios/registro', [
-            'titulo'   => Config::obtener('APP_NOMBRE', 'Registro de Usuarios'),
-            'usuarios' => $this->modeloUsuario->todos(),
-            'roles'    => $this->modeloRol->todos(),
-            'total'    => $this->modeloUsuario->contar(),
-            'estado'   => $this->estadoDelSistema(),
-            // Datos de un solo uso que dejó registrar() en la sesión
-            'aviso'    => $this->sacarDeSesion('aviso'),
-            'errores'  => $this->sacarDeSesion('errores') ?? [],
-            'viejo'    => $this->sacarDeSesion('viejo')   ?? [],
+        $this->render('usuarios/index', [
+            'usuarios' => $this->usuarios->todos(),
+            'total'    => $this->usuarios->contar(),
+            // Quién está dentro ahora mismo: [usuario_id => datos de su sesión]
+            'sesiones' => $this->sesiones->abiertas(),
+            'aviso'    => Sesion::sacar('aviso'),
         ]);
     }
 
-    /**
-     * POST: procesa el registro, recargar GET F5 evitar duplicados
-     */
-    private function registrar(): void
+    /** GET admin/usuarios/nuevo: formulario de alta. POST: procesa el alta y redirige (así F5 no duplica). */
+    public function nuevo(): void
     {
+        if ($this->esPost()) {
+            $this->guardar(null);
+        }
+
+        $this->render('usuarios/formulario', [
+            'usuario' => null,
+            'roles'   => $this->roles->todos(),
+            'aviso'   => Sesion::sacar('aviso'),
+            'errores' => Sesion::sacar('errores') ?? [],
+            'viejo'   => Sesion::sacar('viejo')   ?? [],
+        ]);
+    }
+
+    /** GET admin/usuarios/editar?id=: formulario con los datos actuales. POST: guarda los cambios. */
+    public function editar(): void
+    {
+        $id      = $this->idPedido(self::LISTA);
+        $usuario = $this->usuarios->buscar($id);
+
+        if ($usuario === null) {
+            $this->avisar('error', 'Ese usuario ya no existe.');
+            $this->redirigir(self::LISTA);
+        }
+
+        if ($this->esPost()) {
+            $this->guardar($usuario);
+        }
+
+        $this->render('usuarios/formulario', [
+            'usuario' => $usuario,
+            'roles'   => $this->roles->todos(),
+            'aviso'   => Sesion::sacar('aviso'),
+            'errores' => Sesion::sacar('errores') ?? [],
+            // Sin intento previo, el formulario se llena con lo que hay en la BD
+            'viejo'   => Sesion::sacar('viejo') ?? [
+                'nombre' => $usuario['nombre'],
+                'correo' => $usuario['correo'],
+                'rol_id' => $usuario['rol_id'],
+            ],
+        ]);
+    }
+
+    /** POST admin/usuarios/estado: activa o desactiva la cuenta (el empleado que renuncia pierde el acceso). */
+    public function estado(): void
+    {
+        $this->soloPost();
+        $this->requerirCsrf(self::LISTA);
+
+        $usuario = $this->usuarioAjeno();
+        $activo  = !$usuario['activo'];
+
+        $this->usuarios->cambiarEstado($usuario['id'], $activo);
+
+        // Desactivar a alguien que está dentro debe sacarlo ya, no en su próxima visita
+        if (!$activo) {
+            $this->sesiones->cerrar($usuario['id']);
+        }
+
+        $this->avisar(
+            'exito',
+            $activo ? 'Cuenta de %s reactivada.' : 'Cuenta de %s desactivada. Ya no podrá iniciar sesión.',
+            $usuario['nombre']
+        );
+
+        $this->redirigir(self::LISTA);
+    }
+
+    /**
+     * POST admin/usuarios/sesion: libera la sesión de un empleado.
+     * Sirve para el caso real de "cerró el navegador sin salir y ahora no puede
+     * volver a entrar". Como una sesión abierta no caduca por tiempo, esta es la
+     * ÚNICA forma de destrabar esa cuenta.
+     */
+    public function sesion(): void
+    {
+        $this->soloPost();
+        $this->requerirCsrf(self::LISTA);
+
+        $usuario = $this->usuarioAjeno();
+
+        $this->sesiones->cerrar($usuario['id']);
+        $this->avisar('exito', 'Sesión de %s liberada. Ya puede entrar desde cualquier dispositivo.', $usuario['nombre']);
+
+        $this->redirigir(self::LISTA);
+    }
+
+    /** POST admin/usuarios/eliminar: borrado definitivo. Sus autos quedan sin asignar. */
+    public function eliminar(): void
+    {
+        $this->soloPost();
+        $this->requerirCsrf(self::LISTA);
+
+        $usuario = $this->usuarioAjeno();
+
+        $this->usuarios->eliminar($usuario['id']);
+        $this->avisar('exito', 'Usuario %s eliminado.', $usuario['nombre']);
+
+        $this->redirigir(self::LISTA);
+    }
+
+    /**
+     * Valida y guarda lo que llegó por POST. Con $actual = null es un alta;
+     * con un usuario, una edición. Siempre termina redirigiendo.
+     */
+    private function guardar(?array $actual): never
+    {
+        $esAlta   = $actual === null;
+        $volverA  = $esAlta ? '/admin/usuarios/nuevo' : '/admin/usuarios/editar?id=' . $actual['id'];
+        $esPropio = !$esAlta && $actual['id'] === Sesion::usuario()['id'];
+
+        $this->requerirCsrf($volverA);
+
         $datos = [
             'nombre'     => trim((string) ($_POST['nombre'] ?? '')),
             'correo'     => trim((string) ($_POST['correo'] ?? '')),
             'contrasena' => (string) ($_POST['contrasena'] ?? ''),
-            'rol_id'     => (int)    ($_POST['rol_id'] ?? Rol::POR_DEFECTO),
+            // El administrador no puede quitarse su propio rol
+            'rol_id'     => $esPropio ? Rol::ADMINISTRADOR : (int) ($_POST['rol_id'] ?? Rol::POR_DEFECTO),
+        ];
+
+        // Se devuelven los datos escritos (nunca las contraseñas)
+        $viejo = [
+            'nombre' => $datos['nombre'],
+            'correo' => $datos['correo'],
+            'rol_id' => $datos['rol_id'],
         ];
 
         // Quien valida es el Modelo, no el Controlador
-        $errores = $this->modeloUsuario->validar($datos);
+        $errores = $this->usuarios->validar($datos, $actual['id'] ?? null);
 
         if ($errores !== []) {
-            $this->guardarEnSesion('errores', $errores);
-            // Se devuelven los datos escritos (nunca las contraseñas)
-            $this->guardarEnSesion('viejo', [
-                'nombre' => $datos['nombre'],
-                'correo' => $datos['correo'],
-                'rol_id' => $datos['rol_id'],
-            ]);
-            $this->guardarEnSesion('aviso', [
-                'tipo'    => 'error',
-                'mensaje' => 'Revisa los campos marcados.',
-            ]);
-
-            $this->redirigir();
+            Sesion::guardar('errores', $errores);
+            Sesion::guardar('viejo', $viejo);
+            $this->avisar('error', 'Revisa los campos marcados.');
+            $this->redirigir($volverA);
         }
 
         try {
-            $this->modeloUsuario->crear(
-                $datos['nombre'],
-                $datos['correo'],
-                $datos['contrasena'],
-                $datos['rol_id']
-            );
+            if ($esAlta) {
+                $this->usuarios->crear(
+                    $datos['nombre'],
+                    $datos['correo'],
+                    $datos['contrasena'],
+                    $datos['rol_id']
+                );
+                $this->avisar('exito', 'Usuario %s registrado correctamente.', $datos['nombre']);
+            } else {
+                $this->usuarios->actualizar(
+                    $actual['id'],
+                    $datos['nombre'],
+                    $datos['correo'],
+                    $datos['rol_id'],
+                    $datos['contrasena']
+                );
 
-            // El %s marca dónde va el nombre; la Vista lo pone en negrita
-            $this->guardarEnSesion('aviso', [
-                'tipo'      => 'exito',
-                'mensaje'   => 'Usuario %s registrado correctamente.',
-                'destacado' => $datos['nombre'],
-            ]);
+                // Si el admin se editó a sí mismo, la cabecera debe reflejarlo de inmediato
+                if ($esPropio) {
+                    Sesion::actualizarUsuario(['nombre' => $datos['nombre'], 'correo' => $datos['correo']]);
+                }
+
+                $this->avisar('exito', 'Cambios de %s guardados.', $datos['nombre']);
+            }
         } catch (PDOException $e) {
-            $this->guardarEnSesion('aviso', [
-                'tipo'    => 'error',
-                'mensaje' => 'No se pudo guardar el usuario: ' . $e->getMessage(),
-            ]);
-            $this->guardarEnSesion('viejo', [
-                'nombre' => $datos['nombre'],
-                'correo' => $datos['correo'],
-                'rol_id' => $datos['rol_id'],
-            ]);
+            Sesion::guardar('viejo', $viejo);
+            $this->avisar('error', 'No se pudo guardar el usuario: ' . $e->getMessage());
+            $this->redirigir($volverA);
         }
-        $this->redirigir();
+
+        $this->redirigir(self::LISTA);
     }
 
-    //  Barra de estado Servidor web y Base de datos
-    private function estadoDelSistema(): array
+    /** El usuario del id recibido, siempre que exista y no sea el propio administrador. */
+    private function usuarioAjeno(): array
     {
-        $db = Database::obtenerInstancia();
-        return [
-            'servidor' => [
-                'conectado' => true,
-                'software'  => $this->nombreDelServidor(),
-                'host'      => $_SERVER['HTTP_HOST'] ?? 'localhost',
-                'php'       => PHP_VERSION,
-            ],
-            'base' => [
-                'conectado' => $db->estaViva(),
-                'motor'     => 'PostgreSQL',
-                'version'   => $db->versionServidor(),
-                'nombre'    => $db->nombreBase(),
-                'host'      => Config::obtener('DB_HOST', '127.0.0.1'),
-                'puerto'    => Config::entero('DB_PORT', 5432),
-                'usuario'   => Config::obtener('DB_USER', ''),
-            ],
-        ];
+        $id      = $this->idPedido(self::LISTA);
+        $usuario = $this->usuarios->buscar($id);
+
+        if ($usuario === null) {
+            $this->avisar('error', 'Ese usuario ya no existe.');
+            $this->redirigir(self::LISTA);
+        }
+
+        if ($usuario['id'] === Sesion::usuario()['id']) {
+            $this->avisar('error', 'No puedes desactivar ni eliminar tu propia cuenta.');
+            $this->redirigir(self::LISTA);
+        }
+
+        return $usuario;
     }
 
-    private function nombreDelServidor(): string
+    /** Las acciones destructivas solo se aceptan por POST (un enlace GET no basta). */
+    private function soloPost(): void
     {
-        $completo = $_SERVER['SERVER_SOFTWARE'] ?? 'Servidor web';
-        return strtok($completo, '/ ') ?: $completo;
-    }
-
-    // Utilidades
-
-    // Vista renderizada dentro del layout
-    private function render(string $vista, array $datos = []): void
-    {
-        extract($datos, EXTR_SKIP);
-
-        $titulo ??= 'Registro de Usuarios';
-
-        ob_start();
-        require RUTA_APP . '/views/' . $vista . '.php';
-        $contenido = ob_get_clean();
-
-        require RUTA_APP . '/views/layout.php';
-    }
-
-    private function redirigir(): void
-    {
-        header('Location: ' . $_SERVER['PHP_SELF']);
-        exit;
-    }
-
-    private function guardarEnSesion(string $clave, mixed $valor): void
-    {
-        $_SESSION[$clave] = $valor;
-    }
-
-    /** Lee el valor y lo borra, para que el aviso aparezca una sola vez. */
-    private function sacarDeSesion(string $clave): mixed
-    {
-        $valor = $_SESSION[$clave] ?? null;
-        unset($_SESSION[$clave]);
-
-        return $valor;
+        if (!$this->esPost()) {
+            $this->redirigir(self::LISTA);
+        }
     }
 }
