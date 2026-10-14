@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+
+{% block contenido %}
+<div class="pagina__cabecera">
+    <div>
+        <h1 class="pagina__titulo">Gestión de usuarios</h1>
+        <p class="pagina__nota">
+            Mecánicos y administradores con acceso al sistema.
+            Cada cuenta solo puede estar abierta en un dispositivo a la vez:
+            si alguien cerró el navegador sin salir, libera su sesión desde aquí.
+        </p>
+    </div>
+    <div class="pagina__acciones">
+        <a class="boton boton--primario" href="{% url 'cuentas:usuario_nuevo' %}">+ Agregar nuevo empleado</a>
+    </div>
+</div>
+
+{% include 'parciales/avisos.html' %}
+
+<section class="tarjeta" aria-labelledby="titulo-lista">
+
+    <header class="tarjeta__cabecera tarjeta__cabecera--fila">
+        <h2 class="tarjeta__titulo" id="titulo-lista">Personal registrado</h2>
+        <span class="contador">{{ total }} registro{{ total|pluralize }}</span>
+    </header>
+
+    {% if not usuarios %}
+
+        <p class="vacio">Todavía no hay usuarios registrados.</p>
+
+    {% else %}
+
+        <div class="tabla__envoltorio">
+            <table class="tabla">
+                <thead>
+                    <tr>
+                        <th scope="col">Nombre</th>
+                        <th scope="col">Rol</th>
+                        <th scope="col">Correo</th>
+                        <th scope="col">Estado</th>
+                        <th scope="col">Sesión</th>
+                        <th scope="col">Registrado</th>
+                        <th scope="col" class="celda--acciones">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for fila in usuarios %}
+                        {% with sesion=fila.sesion_activa %}
+                        <tr class="{% if not fila.activo %}fila--inactiva{% endif %}">
+                            <td class="celda--fuerte">
+                                {{ fila.nombre }}
+                                {% if fila.pk == user.pk %}
+                                    <span class="celda__nota">(tú)</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="etiqueta etiqueta--rol{{ fila.rol_id }}">{{ fila.rol.nombre }}</span>
+                            </td>
+                            <td>{{ fila.correo }}</td>
+                            <td>
+                                <span class="estado {% if fila.activo %}estado--activo{% else %}estado--inactivo{% endif %}">
+                                    {% if fila.activo %}Activo{% else %}Inactivo{% endif %}
+                                </span>
+                            </td>
+                            <td>
+                                {# REGLA DE ACCESO ÚNICO: como mucho una sesión por cuenta, o ninguna #}
+                                {% if sesion %}
+                                    <span class="estado estado--activo"
+                                          title="Entró el {{ sesion.iniciada_en|date:'d/m/Y H:i' }}. Última actividad: {{ sesion.ultima_actividad|date:'d/m/Y H:i' }}">
+                                        En línea
+                                    </span>
+                                    <span class="celda__nota">desde {{ sesion.iniciada_en|date:'H:i' }}</span>
+                                {% else %}
+                                    <span class="celda--tenue">—</span>
+                                {% endif %}
+                            </td>
+                            <td class="celda--tenue">{{ fila.creado_en|date:'d/m/Y H:i' }}</td>
+                            <td class="celda--acciones">
+                                <div class="acciones">
+
+                                    <a class="boton boton--pequeno boton--suave"
+                                       href="{% url 'cuentas:usuario_editar' fila.pk %}">Editar</a>
+
+                                    {% if fila.pk != user.pk %}
+                                        {% if sesion %}
+                                            <form method="post" action="{% url 'cuentas:usuario_sesion' fila.pk %}"
+                                                  onsubmit="return confirm('¿Cerrar la sesión de {{ fila.nombre|escapejs }}? Podrá volver a entrar desde cualquier dispositivo.')">
+                                                {% csrf_token %}
+                                                <button class="boton boton--pequeno boton--suave" type="submit">Cerrar sesión</button>
+                                            </form>
+                                        {% endif %}
+
+                                        <form method="post" action="{% url 'cuentas:usuario_estado' fila.pk %}">
+                                            {% csrf_token %}
+                                            <button class="boton boton--pequeno boton--suave" type="submit">
+                                                {% if fila.activo %}Desactivar{% else %}Reactivar{% endif %}
+                                            </button>
+                                        </form>
+
+                                        <form method="post" action="{% url 'cuentas:usuario_eliminar' fila.pk %}"
+                                              onsubmit="return confirm('¿Eliminar definitivamente a {{ fila.nombre|escapejs }}? Sus autos quedarán sin asignar.')">
+                                            {% csrf_token %}
+                                            <button class="boton boton--pequeno boton--peligro" type="submit">Eliminar</button>
+                                        </form>
+                                    {% endif %}
+
+                                </div>
+                            </td>
+                        </tr>
+                        {% endwith %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    {% endif %}
+
+</section>
+{% endblock %}

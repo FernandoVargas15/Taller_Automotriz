@@ -1,8 +1,0 @@
-# URLs limpias: /login, /admin/usuarios, ... → index.php
-# Los archivos reales (css, img) se sirven tal cual.
-Options -Indexes +FollowSymLinks
-
-RewriteEngine On
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^ index.php [L,QSA]

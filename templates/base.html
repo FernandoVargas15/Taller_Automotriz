@@ -1,0 +1,20 @@
+{% load taller_extras %}<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block titulo %}{{ APP_NOMBRE }}{% endblock %}</title>
+    <link rel="stylesheet" href="{% css 'app' %}">
+    {% block estilos %}{% endblock %}
+</head>
+<body>
+
+    {% encabezado %}
+
+    <main class="contenido">
+        {% block contenido %}{% endblock %}
+    </main>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

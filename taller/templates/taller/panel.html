@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% block contenido %}
+{# Cabecera: saludo y la acción principal #}
+<div class="pagina__cabecera">
+    <div>
+        <h1 class="pagina__titulo">Hola, {{ user.primer_nombre }}</h1>
+        <p class="pagina__nota">Así va el taller hoy, {% now 'd/m/Y' %}.</p>
+    </div>
+    <div class="pagina__acciones">
+        <a class="boton boton--primario" href="{% url 'taller:vehiculo_nuevo' %}">+ Registrar vehículo</a>
+    </div>
+</div>
+
+{% include 'parciales/avisos.html' %}
+
+<section class="tarjeta" aria-labelledby="titulo-taller">
+
+    <header class="tarjeta__cabecera tarjeta__cabecera--fila">
+        <div>
+            <h2 class="tarjeta__titulo" id="titulo-taller">Estado del taller</h2>
+            <p class="tarjeta__nota">Cómo está repartido el trabajo ahora mismo.</p>
+        </div>
+        <div class="acciones">
+            <a class="boton boton--pequeno boton--suave" href="{% url 'reportes:index' %}">Reporte en PDF</a>
+            <a class="boton boton--pequeno boton--suave" href="{% url 'taller:vehiculos' %}">Ver todos los vehículos</a>
+        </div>
+    </header>
+
+    {# Las tres cifras, cada una con su barra y su leyenda #}
+    <div class="bloque distribuciones">
+        {% for dato in distribuciones %}
+            <div class="distribucion">
+
+                <p class="distribucion__nombre">{{ dato.nombre }}</p>
+                <p class="distribucion__total">{{ dato.total }}</p>
+
+                <div class="carga">
+                    {% for parte in dato.partes %}
+                        {% if parte.valor > 0 %}
+                            <span class="carga__parte carga__parte--{{ parte.color }}"
+                                  style="width: {{ parte.ancho }}%"
+                                  title="{{ parte.nombre }}: {{ parte.valor }}"></span>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
+                <ul class="leyenda">
+                    {% for parte in dato.partes %}
+                        <li class="leyenda__parte">
+                            <span class="leyenda__punto leyenda__punto--{{ parte.color }}" aria-hidden="true"></span>
+                            <span class="leyenda__nombre">{{ parte.nombre }}</span>
+                            <span class="leyenda__valor">{{ parte.valor }}</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+
+            </div>
+        {% endfor %}
+    </div>
+
+    {# Últimos autos que entraron y siguen en el taller #}
+    {% if not recientes %}
+
+        <p class="vacio">Todavía no ha ingresado ningún vehículo.</p>
+
+    {% else %}
+
+        <div class="tabla__envoltorio">
+            <table class="tabla">
+                <thead>
+                    <tr>
+                        <th scope="col">Folio</th>
+                        <th scope="col">Cliente</th>
+                        <th scope="col">Vehículo</th>
+                        <th scope="col">Área actual</th>
+                        <th scope="col">Asignado a</th>
+                        <th scope="col">Ingreso</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for auto in recientes %}
+                        <tr>
+                            <td class="mono">{{ auto.folio }}</td>
+                            <td class="celda--fuerte">{{ auto.cliente_nombre }}</td>
+                            <td>
+                                {{ auto.marca }} {{ auto.modelo }}
+                                {% if auto.anio %}<span class="celda__nota">{{ auto.anio }}</span>{% endif %}
+                            </td>
+                            <td>
+                                <span class="etiqueta etiqueta--area{{ auto.area_id }}">{{ auto.area.nombre }}</span>
+                            </td>
+                            <td>
+                                {% if auto.asignado_a %}
+                                    {{ auto.asignado_a.nombre }}
+                                {% else %}
+                                    <span class="celda--tenue">Sin asignar</span>
+                                {% endif %}
+                            </td>
+                            <td class="celda--tenue">{{ auto.creado_en|date:'d/m/Y H:i' }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    {% endif %}
+
+</section>
+{% endblock %}

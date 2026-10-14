@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% load taller_extras %}
+
+{% block estilos %}<link rel="stylesheet" href="{% css 'bitacora' %}">{% endblock %}
+
+{% block contenido %}
+{# Cabecera: qué auto es y cómo volver a la lista #}
+<div class="pagina__cabecera">
+    <div>
+        <h1 class="pagina__titulo">{{ vehiculo.descripcion }}</h1>
+        <p class="pagina__nota">Folio {{ vehiculo.folio }}. Todo lo que registres aquí lo verá el cliente en su consulta.</p>
+    </div>
+    <div class="pagina__acciones">
+        <a class="boton boton--suave" href="{% url 'taller:mis_autos' %}">← Volver a mis autos</a>
+    </div>
+</div>
+
+{% include 'parciales/avisos.html' %}
+
+<div class="bitacora">
+
+    <aside class="bitacora__lateral">
+
+        {% include 'taller/parciales/ficha_vehiculo.html' %}
+
+        {# Avance del proceso: Recepción → Mecánica → Pintura → Terminado #}
+        {% if not vehiculo.esta_entregado %}
+            <section class="tarjeta" aria-labelledby="titulo-area">
+                <header class="tarjeta__cabecera">
+                    <h2 class="tarjeta__titulo" id="titulo-area">Mover de área</h2>
+                    <p class="tarjeta__nota">Para marcarlo Terminado, la bitácora necesita al menos una foto.</p>
+                </header>
+
+                <form method="post" action="{% url 'taller:vehiculo_area' vehiculo.pk %}">
+                    {% csrf_token %}
+
+                    <div class="bloque">
+                        <div class="campos">
+                            <div class="campo">
+                                <label class="campo__etiqueta" for="area_id">Área</label>
+                                <select class="campo__control" id="area_id" name="area_id">
+                                    {% for area in areas %}
+                                        <option value="{{ area.id }}" {% if area.id == vehiculo.area_id %}selected{% endif %}>
+                                            {{ area.nombre }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bloque bloque--acciones">
+                        <button class="boton boton--primario" type="submit">Cambiar área</button>
+                    </div>
+                </form>
+            </section>
+        {% endif %}
+
+        {% url 'taller:vehiculo' vehiculo.pk as accion %}
+        {% include 'taller/parciales/formulario_reporte.html' with accion=accion %}
+
+    </aside>
+
+    {% include 'taller/parciales/linea_tiempo.html' %}
+
+</div>
+{% endblock %}

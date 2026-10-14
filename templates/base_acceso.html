@@ -1,0 +1,18 @@
+{% load static taller_extras %}<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block titulo %}{{ APP_NOMBRE }}{% endblock %}</title>
+    <link rel="stylesheet" href="{% css 'acceso' %}">
+</head>
+<body class="auth">
+
+    <div class="auth__fondo" style="background-image: url('{% static 'img/fondo-login.jpg' %}')" aria-hidden="true"></div>
+
+    <main class="auth__centro">
+        {% block contenido %}{% endblock %}
+    </main>
+
+</body>
+</html>

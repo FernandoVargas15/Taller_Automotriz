@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block contenido %}
+<div class="pagina__cabecera">
+    <div>
+        <h1 class="pagina__titulo">Mis autos</h1>
+        <p class="pagina__nota">
+            Hola, {{ user.primer_nombre }}.
+            Tienes {{ en_taller }} auto{{ en_taller|pluralize }} en el taller.
+        </p>
+    </div>
+</div>
+
+{% include 'parciales/avisos.html' %}
+
+<section class="tarjeta" aria-labelledby="titulo-lista">
+
+    <header class="tarjeta__cabecera tarjeta__cabecera--fila">
+        <h2 class="tarjeta__titulo" id="titulo-lista">Autos asignados</h2>
+        <span class="contador">{{ vehiculos|length }} en total</span>
+    </header>
+
+    {% if not vehiculos %}
+
+        <p class="vacio">Todavía no tienes autos asignados. El asesor o el administrador te los asignan al registrarlos.</p>
+
+    {% else %}
+
+        <div class="tabla__envoltorio">
+            <table class="tabla">
+                <thead>
+                    <tr>
+                        <th scope="col">Folio</th>
+                        <th scope="col">Vehículo</th>
+                        <th scope="col">Cliente</th>
+                        <th scope="col">Área actual</th>
+                        <th scope="col">Ingreso</th>
+                        <th scope="col" class="celda--acciones">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for auto in vehiculos %}
+                        <tr class="{% if auto.esta_entregado %}fila--inactiva{% endif %}">
+                            <td class="mono">{{ auto.folio }}</td>
+                            <td>
+                                <span class="celda--fuerte">{{ auto.descripcion }}</span>
+                                <span class="celda__linea celda--tenue">{{ auto.detalle }}</span>
+                            </td>
+                            <td>{{ auto.cliente_nombre }}</td>
+                            <td>
+                                <span class="etiqueta etiqueta--area{{ auto.area_id }}">{{ auto.area.nombre }}</span>
+                            </td>
+                            <td class="celda--tenue">{{ auto.creado_en|date:'d/m/Y H:i' }}</td>
+                            <td class="celda--acciones">
+                                <div class="acciones">
+                                    <a class="boton boton--pequeno {% if auto.esta_entregado %}boton--suave{% else %}boton--primario{% endif %}"
+                                       href="{% url 'taller:vehiculo' auto.pk %}">
+                                        {% if auto.esta_entregado %}Ver historial{% else %}Trabajar{% endif %}
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    {% endif %}
+
+</section>
+{% endblock %}

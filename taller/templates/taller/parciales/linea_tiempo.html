@@ -1,0 +1,58 @@
+{# Línea de tiempo de un auto: la misma para el mostrador, el taller y el cliente. #}
+<section class="tarjeta" aria-labelledby="titulo-linea">
+    <header class="tarjeta__cabecera tarjeta__cabecera--fila">
+        <h2 class="tarjeta__titulo" id="titulo-linea">Línea de tiempo</h2>
+        <span class="contador">{{ entradas|length }} entrada{{ entradas|length|pluralize }}</span>
+    </header>
+
+    {% if not entradas %}
+
+        <p class="vacio">Todavía no hay reportes de este auto.</p>
+
+    {% else %}
+
+        <ol class="linea">
+            {% for entrada in entradas %}
+                <li class="linea__entrada">
+                    <span class="linea__punto linea__punto--area{{ entrada.area_id }}" aria-hidden="true"></span>
+
+                    <div class="linea__contenido">
+                        <div class="linea__cabecera">
+                            <div>
+                                <span class="etiqueta etiqueta--area{{ entrada.area_id }}">{{ entrada.area.nombre }}</span>
+                                <span class="linea__fecha">{{ entrada.creado_en|date:'d/m/Y H:i' }}</span>
+                            </div>
+
+                            {% if puede_eliminar %}
+                                <form method="post" action="{% url 'taller:bitacora_eliminar' entrada.pk %}"
+                                      onsubmit="return confirm('¿Eliminar este reporte{% if entrada.foto %} y su foto{% endif %}? Esta acción no se puede deshacer.')">
+                                    {% csrf_token %}
+                                    <button class="boton boton--pequeno boton--peligro" type="submit">
+                                        Eliminar {% if entrada.foto %}foto/reporte{% else %}reporte{% endif %}
+                                    </button>
+                                </form>
+                            {% endif %}
+                        </div>
+
+                        <p class="linea__texto">{{ entrada.descripcion|linebreaksbr }}</p>
+
+                        {% if entrada.foto %}
+                            <a class="linea__foto" href="{{ entrada.foto.url }}" target="_blank" rel="noopener">
+                                <img src="{{ entrada.foto.url }}" alt="Foto del reporte" loading="lazy">
+                            </a>
+                        {% endif %}
+
+                        <p class="linea__autor">
+                            {% if entrada.usuario %}
+                                {{ entrada.usuario.nombre }} · {{ entrada.usuario.rol.nombre }}
+                            {% else %}
+                                Personal del taller
+                            {% endif %}
+                        </p>
+                    </div>
+                </li>
+            {% endfor %}
+        </ol>
+
+    {% endif %}
+</section>

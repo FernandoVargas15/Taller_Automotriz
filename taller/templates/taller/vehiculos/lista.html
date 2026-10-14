@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+
+{% block contenido %}
+<div class="pagina__cabecera">
+    <div>
+        <h1 class="pagina__titulo">Control general de vehículos</h1>
+        <p class="pagina__nota">Todos los autos registrados, sin importar en qué área estén. Los entregados van al final.</p>
+    </div>
+    <div class="pagina__acciones">
+        <a class="boton boton--primario" href="{% url 'taller:vehiculo_nuevo' %}">+ Registrar vehículo</a>
+    </div>
+</div>
+
+{% include 'parciales/avisos.html' %}
+
+<section class="tarjeta" aria-labelledby="titulo-lista">
+
+    <header class="tarjeta__cabecera tarjeta__cabecera--fila">
+        <div>
+            <h2 class="tarjeta__titulo" id="titulo-lista">Vehículos registrados</h2>
+            <p class="tarjeta__nota">
+                {% if busqueda %}
+                    {{ vehiculos|length }} de {{ total }} coinciden con «{{ busqueda }}»
+                {% else %}
+                    {{ total }} registro{{ total|pluralize }}
+                {% endif %}
+            </p>
+        </div>
+
+        {# Buscador: sirve para encontrar un auto que ya vino antes y reingresarlo #}
+        <form class="buscador" method="get" action="{% url 'taller:vehiculos' %}" role="search">
+            <input class="campo__control buscador__control" type="search" name="q"
+                   value="{{ busqueda }}" placeholder="Folio, cliente, placas, marca…" aria-label="Buscar vehículo">
+            <button class="boton boton--suave" type="submit">Buscar</button>
+            {% if busqueda %}
+                <a class="boton boton--suave" href="{% url 'taller:vehiculos' %}">Limpiar</a>
+            {% endif %}
+        </form>
+    </header>
+
+    {% if not vehiculos %}
+
+        <p class="vacio">
+            {% if busqueda %}Ningún vehículo coincide con la búsqueda.{% else %}Todavía no hay vehículos registrados.{% endif %}
+        </p>
+
+    {% else %}
+
+        <div class="tabla__envoltorio">
+            <table class="tabla">
+                <thead>
+                    <tr>
+                        <th scope="col">Folio</th>
+                        <th scope="col">Cliente</th>
+                        <th scope="col">Vehículo</th>
+                        <th scope="col">Área actual</th>
+                        <th scope="col">Asignado a</th>
+                        <th scope="col">Ingreso</th>
+                        <th scope="col" class="celda--acciones">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for auto in vehiculos %}
+                        <tr class="{% if auto.esta_entregado %}fila--inactiva{% endif %}">
+                            <td class="mono">{{ auto.folio }}</td>
+                            <td>
+                                <span class="celda--fuerte">{{ auto.cliente_nombre }}</span>
+                                <span class="celda__linea celda--tenue">{{ auto.cliente_telefono }}</span>
+                            </td>
+                            <td>
+                                {{ auto.descripcion }}
+                                <span class="celda__linea celda--tenue">{{ auto.detalle }}</span>
+                            </td>
+                            <td>
+                                <span class="etiqueta etiqueta--area{{ auto.area_id }}">{{ auto.area.nombre }}</span>
+                                {% if auto.esta_entregado and auto.entregado_en %}
+                                    <span class="celda__linea celda--tenue">{{ auto.entregado_en|date:'d/m/Y' }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if auto.asignado_a %}
+                                    {{ auto.asignado_a.nombre }}
+                                    <span class="celda__linea celda--tenue">{{ auto.asignado_a.rol.nombre }}</span>
+                                {% else %}
+                                    <span class="celda--tenue">{% if auto.esta_entregado %}—{% else %}Sin asignar{% endif %}</span>
+                                {% endif %}
+                            </td>
+                            <td class="celda--tenue">{{ auto.creado_en|date:'d/m/Y H:i' }}</td>
+                            <td class="celda--acciones">
+                                <div class="acciones">
+
+                                    {% if auto.esta_terminado %}
+                                        <form method="post" action="{% url 'taller:vehiculo_entregar' auto.pk %}"
+                                              onsubmit="return confirm('¿Marcar el {{ auto.marca|escapejs }} {{ auto.modelo|escapejs }} ({{ auto.folio }}) como entregado al cliente?')">
+                                            {% csrf_token %}
+                                            <button class="boton boton--pequeno boton--primario" type="submit">Entregar</button>
+                                        </form>
+                                    {% endif %}
+
+                                    {% if auto.esta_entregado %}
+                                        <a class="boton boton--pequeno boton--primario"
+                                           href="{% url 'taller:vehiculo_nuevo' %}?desde={{ auto.pk }}"
+                                           title="Vuelve al taller: nuevo folio con los datos del cliente y del auto ya llenos">Reingresar</a>
+                                    {% endif %}
+
+                                    <a class="boton boton--pequeno boton--suave"
+                                       href="{% url 'taller:bitacora' auto.pk %}">Ver bitácora</a>
+
+                                    <a class="boton boton--pequeno boton--suave"
+                                       href="{% url 'taller:vehiculo_editar' auto.pk %}">Editar</a>
+
+                                    {% if user.es_admin %}
+                                        <form method="post" action="{% url 'taller:vehiculo_eliminar' auto.pk %}"
+                                              onsubmit="return confirm('¿Eliminar el vehículo {{ auto.folio }} y toda su bitácora? Esta acción no se puede deshacer.')">
+                                            {% csrf_token %}
+                                            <button class="boton boton--pequeno boton--peligro" type="submit">Eliminar</button>
+                                        </form>
+                                    {% endif %}
+
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    {% endif %}
+
+</section>
+{% endblock %}

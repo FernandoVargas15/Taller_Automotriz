@@ -1,0 +1,53 @@
+{# Ficha del auto: folio, cliente, vehículo, responsable y fechas. Con publica=True no se muestra el teléfono. #}
+<section class="tarjeta" aria-labelledby="titulo-ficha">
+    <header class="tarjeta__cabecera tarjeta__cabecera--fila">
+        <h2 class="tarjeta__titulo" id="titulo-ficha">Ficha</h2>
+        <span class="etiqueta etiqueta--area{{ vehiculo.area_id }}">{{ vehiculo.area.nombre }}</span>
+    </header>
+
+    <dl class="ficha">
+        <div class="ficha__fila">
+            <dt>Folio</dt>
+            <dd class="mono">{{ vehiculo.folio }}</dd>
+        </div>
+        <div class="ficha__fila">
+            <dt>Cliente</dt>
+            <dd>
+                {{ vehiculo.cliente_nombre }}
+                {% if not publica %}
+                    <span class="ficha__sub">{{ vehiculo.cliente_telefono }}</span>
+                {% endif %}
+            </dd>
+        </div>
+        <div class="ficha__fila">
+            <dt>Vehículo</dt>
+            <dd>
+                {{ vehiculo.descripcion }}
+                {% if vehiculo.detalle %}
+                    <span class="ficha__sub">{{ vehiculo.detalle }}</span>
+                {% endif %}
+            </dd>
+        </div>
+        <div class="ficha__fila">
+            <dt>Asignado a</dt>
+            <dd>
+                {% if vehiculo.asignado_a %}
+                    {{ vehiculo.asignado_a.nombre }}
+                    <span class="ficha__sub">{{ vehiculo.asignado_a.rol.nombre }}</span>
+                {% else %}
+                    <span class="celda--tenue">{% if vehiculo.esta_entregado %}—{% else %}Sin asignar{% endif %}</span>
+                {% endif %}
+            </dd>
+        </div>
+        <div class="ficha__fila">
+            <dt>Ingreso</dt>
+            <dd>{{ vehiculo.creado_en|date:'d/m/Y H:i' }}</dd>
+        </div>
+        {% if vehiculo.entregado_en %}
+            <div class="ficha__fila">
+                <dt>Entrega</dt>
+                <dd>{{ vehiculo.entregado_en|date:'d/m/Y H:i' }}</dd>
+            </div>
+        {% endif %}
+    </dl>
+</section>

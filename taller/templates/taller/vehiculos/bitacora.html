@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% load taller_extras %}
+
+{% block estilos %}<link rel="stylesheet" href="{% css 'bitacora' %}">{% endblock %}
+
+{% block contenido %}
+<div class="pagina__cabecera">
+    <div>
+        <h1 class="pagina__titulo">Bitácora de {{ vehiculo.descripcion }}</h1>
+        <p class="pagina__nota">Folio {{ vehiculo.folio }}. Lo mismo que ve el cliente; aquí puedes borrar fotos borrosas o reportes con errores.</p>
+    </div>
+    <div class="pagina__acciones">
+        <a class="boton boton--suave" href="{% url 'taller:vehiculos' %}">← Volver a vehículos</a>
+        <a class="boton boton--suave" href="{% url 'taller:vehiculo_editar' vehiculo.pk %}">Editar auto</a>
+    </div>
+</div>
+
+{% include 'parciales/avisos.html' %}
+
+<div class="bitacora">
+
+    <aside class="bitacora__lateral">
+        {% include 'taller/parciales/ficha_vehiculo.html' %}
+        {% url 'taller:bitacora' vehiculo.pk as accion %}
+        {% include 'taller/parciales/formulario_reporte.html' with accion=accion %}
+    </aside>
+
+    {% include 'taller/parciales/linea_tiempo.html' %}
+
+</div>
+{% endblock %}

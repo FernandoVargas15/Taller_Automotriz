@@ -1,0 +1,79 @@
+{% extends 'base_acceso.html' %}
+
+{% block contenido %}
+<section class="tarjeta-acceso" aria-labelledby="titulo-login">
+
+    <h1 class="tarjeta-acceso__titulo" id="titulo-login">Iniciar sesión</h1>
+    <p class="tarjeta-acceso__nota">Acceso al panel del personal de {{ APP_NOMBRE }}.</p>
+
+    {% for message in messages %}
+        <div class="tarjeta-acceso__aviso tarjeta-acceso__aviso--{{ message.tags }}" role="alert">{{ message }}</div>
+    {% endfor %}
+
+    {% if form.non_field_errors %}
+        <div class="tarjeta-acceso__aviso tarjeta-acceso__aviso--error" role="alert">{{ form.non_field_errors.0 }}</div>
+    {% elif form.errors %}
+        <div class="tarjeta-acceso__aviso tarjeta-acceso__aviso--error" role="alert">Revisa los campos marcados.</div>
+    {% endif %}
+
+    <form class="formulario-acceso" method="post" action="{% url 'cuentas:login' %}">
+        {% csrf_token %}
+
+        <!-- Correo -->
+        <div class="campo-acceso">
+            <label class="campo-acceso__etiqueta" for="correo">Correo electrónico</label>
+            <div class="campo-acceso__linea {% if form.correo.errors %}es-invalido{% endif %}">
+                <svg class="campo-acceso__icono" viewBox="0 0 24 24" aria-hidden="true">
+                    <circle cx="12" cy="12" r="4"/>
+                    <path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8"/>
+                </svg>
+                <input
+                    class="campo-acceso__control"
+                    type="email"
+                    id="correo"
+                    name="correo"
+                    value="{{ form.correo.value|default_if_none:'' }}"
+                    placeholder="tu@correo.com"
+                    autocomplete="username"
+                    autofocus
+                    required>
+            </div>
+            {% if form.correo.errors %}
+                <p class="campo-acceso__error">{{ form.correo.errors.0 }}</p>
+            {% endif %}
+        </div>
+
+        <!-- Contraseña -->
+        <div class="campo-acceso">
+            <label class="campo-acceso__etiqueta" for="contrasena">Contraseña</label>
+            <div class="campo-acceso__linea {% if form.contrasena.errors %}es-invalido{% endif %}">
+                <svg class="campo-acceso__icono" viewBox="0 0 24 24" aria-hidden="true">
+                    <rect x="3" y="11" width="18" height="11" rx="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+                <input
+                    class="campo-acceso__control"
+                    type="password"
+                    id="contrasena"
+                    name="contrasena"
+                    placeholder="••••••••••"
+                    autocomplete="current-password"
+                    required>
+            </div>
+            {% if form.contrasena.errors %}
+                <p class="campo-acceso__error">{{ form.contrasena.errors.0 }}</p>
+            {% endif %}
+        </div>
+
+        <div class="formulario-acceso__opciones">
+            <a class="enlace-acceso" href="mailto:{{ APP_CONTACTO }}?subject=Olvid%C3%A9%20mi%20contrase%C3%B1a">¿Olvidaste tu contraseña?</a>
+        </div>
+
+        <button class="boton-acceso" type="submit">
+            Iniciar Sesión
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </button>
+
+    </form>
+</section>
+{% endblock %}

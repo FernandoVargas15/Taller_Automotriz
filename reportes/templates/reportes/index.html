@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+{% load taller_extras %}
+
+{% block estilos %}<link rel="stylesheet" href="{% css 'reportes' %}">{% endblock %}
+
+{% block contenido %}
+<div class="pagina__cabecera">
+    <div>
+        <h1 class="pagina__titulo">Reportes</h1>
+        <p class="pagina__nota">Vehículos recibidos en el taller, por día, por semana o por mes.</p>
+    </div>
+    <div class="pagina__acciones">
+        {# Se abre en otra pestaña: así queda el PDF a la vista y esta pantalla no se pierde #}
+        <a class="boton boton--primario" href="{% url 'reportes:pdf' %}?{{ consulta }}" target="_blank" rel="noopener">
+            Ver PDF
+        </a>
+    </div>
+</div>
+
+{% include 'parciales/avisos.html' %}
+
+{# Elegir el corte: primero el tipo de periodo, luego la fecha de referencia #}
+<section class="tarjeta" aria-labelledby="titulo-periodo">
+
+    <header class="tarjeta__cabecera">
+        <h2 class="tarjeta__titulo" id="titulo-periodo">Periodo del reporte</h2>
+        <p class="tarjeta__nota">
+            Elige el tipo de corte y una fecha; el reporte toma el día, la semana (de lunes a domingo)
+            o el mes completo al que pertenece esa fecha.
+        </p>
+    </header>
+
+    <form method="get" action="{% url 'reportes:index' %}" id="filtro-periodo">
+        <div class="bloque">
+            <div class="campos">
+
+                <div class="campo">
+                    <span class="campo__etiqueta">Tipo de corte</span>
+                    <div class="opciones">
+                        {% for valor, nombre in opciones.items %}
+                            <label class="opcion {% if valor == periodo.tipo %}es-activa{% endif %}">
+                                <input type="radio" name="periodo" value="{{ valor }}"
+                                       {% if valor == periodo.tipo %}checked{% endif %}>
+                                {{ nombre }}
+                            </label>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="campo">
+                    <label class="campo__etiqueta" for="fecha">Fecha de referencia</label>
+                    <input class="campo__control" type="date" id="fecha" name="fecha"
+                           value="{{ periodo.fecha_formulario }}" max="{{ hoy }}">
+                    <p class="campo__ayuda">Cualquier día dentro del periodo que quieres consultar.</p>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="bloque bloque--acciones">
+            {# Con JavaScript el filtro se aplica solo; sin él, este botón lo envía a mano #}
+            <noscript>
+                <button class="boton boton--primario" type="submit">Ver periodo</button>
+            </noscript>
+            <a class="boton boton--suave" href="{% url 'reportes:index' %}">Volver al mes actual</a>
+        </div>
+    </form>
+
+</section>
+
+{# Vista previa: exactamente lo que va a salir impreso #}
+<section class="tarjeta" aria-labelledby="titulo-previa">
+
+    <header class="tarjeta__cabecera tarjeta__cabecera--fila">
+        <div>
+            <h2 class="tarjeta__titulo" id="titulo-previa">{{ periodo.titulo|capfirst }}</h2>
+            <p class="tarjeta__nota">{{ periodo.rango_corto }}</p>
+        </div>
+        <span class="contador">{{ vehiculos|length }} vehículo{{ vehiculos|length|pluralize }}</span>
+    </header>
+
+    {% if not vehiculos %}
+
+        <p class="vacio">No se recibió ningún vehículo en este periodo. Prueba con otra fecha u otro tipo de corte.</p>
+
+    {% else %}
+
+        <div class="bloque cifras">
+            {% for nombre, valor in cifras.items %}
+                <div class="cifra">
+                    <span class="cifra__valor">{{ valor }}</span>
+                    <span class="cifra__nombre">{{ nombre }}</span>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="tabla__envoltorio">
+            <table class="tabla">
+                <thead>
+                    <tr>
+                        <th scope="col">Folio</th>
+                        <th scope="col">Ingreso</th>
+                        <th scope="col">Cliente</th>
+                        <th scope="col">Vehículo</th>
+                        <th scope="col">Estado</th>
+                        <th scope="col">Responsable</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for fila in vehiculos %}
+                        <tr>
+                            <td class="mono">{{ fila.folio }}</td>
+                            <td class="celda--tenue">{{ fila.creado_en|date:'d/m/Y H:i' }}</td>
+                            <td class="celda--fuerte">
+                                {{ fila.cliente_nombre }}
+                                <span class="celda__nota">{{ fila.cliente_telefono }}</span>
+                            </td>
+                            <td>
+                                {{ fila.descripcion }}
+                                {% if fila.placas %}<span class="celda__nota">{{ fila.placas }}</span>{% endif %}
+                            </td>
+                            <td>
+                                <span class="etiqueta etiqueta--area{{ fila.area_id }}">{{ fila.area.nombre }}</span>
+                            </td>
+                            <td>
+                                {% if fila.asignado_a %}
+                                    {{ fila.asignado_a.nombre }}
+                                {% else %}
+                                    <span class="celda--tenue">Sin asignar</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    {% endif %}
+
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Al elegir el tipo de corte o cambiar la fecha, el formulario se envía solo.
+    // Si el navegador no ejecuta JavaScript, sigue funcionando con el botón del <noscript>.
+    (function () {
+        var filtro = document.getElementById('filtro-periodo');
+
+        if (!filtro) {
+            return;
+        }
+
+        filtro.addEventListener('change', function (evento) {
+            if (evento.target.name === 'periodo' || evento.target.name === 'fecha') {
+                filtro.submit();
+            }
+        });
+    })();
+</script>
+{% endblock %}

@@ -1,0 +1,51 @@
+{# Formulario para agregar un reporte (texto + foto opcional) a la bitácora. Recibe "accion". #}
+<section class="tarjeta" aria-labelledby="titulo-nuevo">
+
+    <header class="tarjeta__cabecera">
+        <h2 class="tarjeta__titulo" id="titulo-nuevo">Agregar reporte</h2>
+        <p class="tarjeta__nota">Qué se hizo o qué se encontró. Queda registrado en {{ vehiculo.area.nombre }}.</p>
+    </header>
+
+    {% if vehiculo.esta_entregado %}
+
+        <p class="vacio">Este auto ya fue entregado: su bitácora está cerrada.</p>
+
+    {% else %}
+
+        <form method="post" action="{{ accion }}" enctype="multipart/form-data" novalidate>
+            {% csrf_token %}
+
+            <div class="bloque">
+                <div class="campos">
+
+                    <div class="campo">
+                        <label class="campo__etiqueta" for="{{ form.descripcion.id_for_label }}">
+                            Reporte <span class="campo__requerido">*</span>
+                        </label>
+                        {{ form.descripcion }}
+                        {% if form.descripcion.errors %}
+                            <p class="campo__error">{{ form.descripcion.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="campo">
+                        <label class="campo__etiqueta" for="{{ form.foto.id_for_label }}">Foto</label>
+                        {{ form.foto }}
+                        {% if form.foto.errors %}
+                            <p class="campo__error">{{ form.foto.errors.0 }}</p>
+                        {% else %}
+                            <p class="campo__ayuda">JPG, PNG o WebP, máximo 5 MB. Se necesita al menos una foto para marcar el auto como Terminado.</p>
+                        {% endif %}
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="bloque bloque--acciones">
+                <button class="boton boton--primario" type="submit">Agregar a la bitácora</button>
+            </div>
+
+        </form>
+
+    {% endif %}
+</section>

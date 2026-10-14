@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block contenido %}
+{# Cabecera: qué se está haciendo y cómo volver #}
+<div class="pagina__cabecera">
+    <div>
+        <h1 class="pagina__titulo">
+            {% if origen %}
+                Reingresar {{ origen.marca }} {{ origen.modelo }}
+            {% elif vehiculo %}
+                Editar {{ vehiculo.marca }} {{ vehiculo.modelo }}
+            {% else %}
+                Registrar vehículo
+            {% endif %}
+        </h1>
+        <p class="pagina__nota">
+            {% if origen %}
+                Ya vino antes con el folio {{ origen.folio }}. Los datos vienen llenos; revísalos y completa el resto. Se generará un folio nuevo.
+            {% elif vehiculo %}
+                Corrige cualquier dato capturado mal: color, modelo, área o persona asignada.
+            {% else %}
+                El folio se genera solo; con él y su teléfono el cliente podrá consultar el avance.
+            {% endif %}
+        </p>
+    </div>
+    <div class="pagina__acciones">
+        <a class="boton boton--suave" href="{% url 'taller:vehiculos' %}">← Volver a vehículos</a>
+        {% if vehiculo %}
+            <a class="boton boton--suave" href="{% url 'taller:bitacora' vehiculo.pk %}">Ver bitácora</a>
+        {% endif %}
+    </div>
+</div>
+
+{% include 'parciales/avisos.html' %}
+
+<section class="tarjeta" aria-labelledby="titulo-formulario">
+
+    <header class="tarjeta__cabecera">
+        <h2 class="tarjeta__titulo" id="titulo-formulario">Datos del ingreso</h2>
+    </header>
+
+    <form method="post" novalidate
+          action="{% if vehiculo %}{% url 'taller:vehiculo_editar' vehiculo.pk %}{% else %}{% url 'taller:vehiculo_nuevo' %}{% endif %}">
+        {% csrf_token %}
+
+        {# Bloque 1: a quién pertenece el auto #}
+        <div class="bloque">
+            <h3 class="bloque__titulo">Cliente</h3>
+            <p class="bloque__nota">Con el folio y este teléfono consultará el avance de su auto.</p>
+
+            <div class="campos">
+                {% include 'taller/parciales/campo.html' with campo=form.cliente_nombre etiqueta='Nombre' requerido=True %}
+                {% include 'taller/parciales/campo.html' with campo=form.cliente_telefono etiqueta='Teléfono' requerido=True %}
+            </div>
+        </div>
+
+        {# Bloque 2: cómo se identifica el auto #}
+        <div class="bloque">
+            <h3 class="bloque__titulo">Vehículo</h3>
+            <p class="bloque__nota">Marca y modelo son obligatorios; el resto ayuda a reconocerlo.</p>
+
+            <div class="campos">
+                {% include 'taller/parciales/campo.html' with campo=form.marca etiqueta='Marca' requerido=True %}
+                {% include 'taller/parciales/campo.html' with campo=form.modelo etiqueta='Modelo' requerido=True %}
+                {% include 'taller/parciales/campo.html' with campo=form.anio etiqueta='Año' %}
+                {% include 'taller/parciales/campo.html' with campo=form.color etiqueta='Color' %}
+                {% include 'taller/parciales/campo.html' with campo=form.placas etiqueta='Placas' %}
+            </div>
+        </div>
+
+        {# Bloque 3: dónde está el auto y quién lo trabaja #}
+        <div class="bloque">
+            <h3 class="bloque__titulo">Trabajo</h3>
+            <p class="bloque__nota">El área se puede ir cambiando después desde la bitácora.</p>
+
+            <div class="campos">
+                {% include 'taller/parciales/campo.html' with campo=form.area etiqueta='Área actual' requerido=True %}
+
+                {% if form.fields.asignado_a.queryset.exists %}
+                    {% include 'taller/parciales/campo.html' with campo=form.asignado_a etiqueta='Asignado a' %}
+                {% else %}
+                    {% include 'taller/parciales/campo.html' with campo=form.asignado_a etiqueta='Asignado a' ayuda='Aún no hay mecánicos ni hojalateros activos para asignar.' %}
+                {% endif %}
+            </div>
+        </div>
+
+        {# Pie: guardar o cancelar #}
+        <div class="bloque bloque--acciones">
+            <button class="boton boton--primario" type="submit">
+                {% if origen %}Reingresar vehículo{% elif vehiculo %}Guardar cambios{% else %}Registrar vehículo{% endif %}
+            </button>
+            <a class="boton boton--suave" href="{% url 'taller:vehiculos' %}">Cancelar</a>
+        </div>
+
+    </form>
+</section>
+{% endblock %}

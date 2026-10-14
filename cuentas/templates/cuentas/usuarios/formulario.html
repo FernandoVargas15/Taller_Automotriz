@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+
+{% block contenido %}
+<div class="pagina__cabecera">
+    <div>
+        <h1 class="pagina__titulo">{% if usuario %}Editar a {{ usuario.nombre }}{% else %}Agregar nuevo empleado{% endif %}</h1>
+        <p class="pagina__nota">
+            {% if usuario %}
+                Cambia su rol, corrige sus datos o asígnale una contraseña nueva.
+            {% else %}
+                Se le crea una cuenta con la que entrará al sistema. Los clientes no se registran aquí.
+            {% endif %}
+        </p>
+    </div>
+    <div class="pagina__acciones">
+        <a class="boton boton--suave" href="{% url 'cuentas:usuarios' %}">← Volver a usuarios</a>
+    </div>
+</div>
+
+{% include 'parciales/avisos.html' %}
+
+<section class="tarjeta" aria-labelledby="titulo-formulario">
+
+    <header class="tarjeta__cabecera">
+        <h2 class="tarjeta__titulo" id="titulo-formulario">Datos de la cuenta</h2>
+    </header>
+
+    <form method="post" novalidate
+          action="{% if usuario %}{% url 'cuentas:usuario_editar' usuario.pk %}{% else %}{% url 'cuentas:usuario_nuevo' %}{% endif %}">
+        {% csrf_token %}
+
+        <div class="bloque">
+            <div class="campos">
+
+                <div class="campo">
+                    <label class="campo__etiqueta" for="{{ form.nombre.id_for_label }}">
+                        Nombre completo <span class="campo__requerido">*</span>
+                    </label>
+                    {{ form.nombre }}
+                    {% if form.nombre.errors %}
+                        <p class="campo__error">{{ form.nombre.errors.0 }}</p>
+                    {% else %}
+                        <p class="campo__ayuda">Como aparecerá en la bitácora de cada auto.</p>
+                    {% endif %}
+                </div>
+
+                <div class="campo">
+                    <label class="campo__etiqueta" for="{{ form.correo.id_for_label }}">
+                        Correo electrónico <span class="campo__requerido">*</span>
+                    </label>
+                    {{ form.correo }}
+                    {% if form.correo.errors %}
+                        <p class="campo__error">{{ form.correo.errors.0 }}</p>
+                    {% else %}
+                        <p class="campo__ayuda">Con este correo inicia sesión.</p>
+                    {% endif %}
+                </div>
+
+                <div class="campo">
+                    <label class="campo__etiqueta" for="{{ form.contrasena.id_for_label }}">
+                        {% if usuario %}Nueva contraseña{% else %}Contraseña <span class="campo__requerido">*</span>{% endif %}
+                    </label>
+                    {{ form.contrasena }}
+                    {% if form.contrasena.errors %}
+                        <p class="campo__error">{{ form.contrasena.errors.0 }}</p>
+                    {% else %}
+                        <p class="campo__ayuda">
+                            {% if usuario %}Déjala vacía para conservar la actual. {% endif %}Mínimo 8 caracteres.
+                        </p>
+                    {% endif %}
+                </div>
+
+                <div class="campo">
+                    <label class="campo__etiqueta" for="{{ form.rol.id_for_label }}">
+                        Rol <span class="campo__requerido">*</span>
+                    </label>
+                    {{ form.rol }}
+                    {% if form.rol.errors %}
+                        <p class="campo__error">{{ form.rol.errors.0 }}</p>
+                    {% elif es_propio %}
+                        <p class="campo__ayuda">No puedes cambiar tu propio rol.</p>
+                    {% else %}
+                        <p class="campo__ayuda">El mecánico y el hojalatero solo ven los autos que les asignes.</p>
+                    {% endif %}
+                </div>
+
+            </div>
+        </div>
+
+        <div class="bloque bloque--acciones">
+            <button class="boton boton--primario" type="submit">
+                {% if usuario %}Guardar cambios{% else %}Registrar usuario{% endif %}
+            </button>
+            <a class="boton boton--suave" href="{% url 'cuentas:usuarios' %}">Cancelar</a>
+        </div>
+
+    </form>
+</section>
+{% endblock %}

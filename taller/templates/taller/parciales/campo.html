@@ -1,0 +1,12 @@
+{# Un campo de formulario con su etiqueta y su error (o su ayuda). #}
+<div class="campo">
+    <label class="campo__etiqueta" for="{{ campo.id_for_label }}">
+        {{ etiqueta }}{% if requerido %} <span class="campo__requerido">*</span>{% endif %}
+    </label>
+    {{ campo }}
+    {% if campo.errors %}
+        <p class="campo__error">{{ campo.errors.0 }}</p>
+    {% elif ayuda %}
+        <p class="campo__ayuda">{{ ayuda }}</p>
+    {% endif %}
+</div>

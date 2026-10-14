@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% load taller_extras %}
+
+{% block estilos %}<link rel="stylesheet" href="{% css 'bitacora' %}">{% endblock %}
+
+{% block contenido %}
+<div class="pagina__cabecera">
+    <div>
+        <h1 class="pagina__titulo">{{ vehiculo.descripcion }}</h1>
+        <p class="pagina__nota">
+            Hola, {{ vehiculo.cliente_nombre }}. Este es el avance de tu auto con folio {{ vehiculo.folio }}.
+        </p>
+    </div>
+</div>
+
+{% if vehiculo.esta_entregado %}
+    <div class="aviso aviso--exito" role="status">
+        <p class="aviso__mensaje">Tu auto ya fue entregado. ¡Gracias por tu confianza!</p>
+    </div>
+{% elif vehiculo.esta_terminado %}
+    <div class="aviso aviso--exito" role="status">
+        <p class="aviso__mensaje">Tu auto está <strong>listo</strong>. Ya puedes pasar a recogerlo.</p>
+    </div>
+{% endif %}
+
+<div class="bitacora">
+
+    <aside class="bitacora__lateral">
+        {% include 'taller/parciales/ficha_vehiculo.html' with publica=True %}
+    </aside>
+
+    {% include 'taller/parciales/linea_tiempo.html' %}
+
+</div>
+{% endblock %}

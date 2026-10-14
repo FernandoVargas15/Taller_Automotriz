@@ -1,0 +1,34 @@
+{% load taller_extras %}
+<header class="encabezado">
+    <div class="encabezado__interior">
+
+        <span class="encabezado__marca">{{ APP_NOMBRE }}</span>
+
+        {% if pestanas %}
+            <nav class="pestanas" aria-label="Secciones">
+                {% for pestana in pestanas %}
+                    <a class="pestanas__enlace {% if pestana.activa %}es-activa{% endif %}"
+                       href="{{ pestana.url }}"
+                       {% if pestana.activa %}aria-current="page"{% endif %}>{{ pestana.nombre }}</a>
+                {% endfor %}
+            </nav>
+        {% endif %}
+
+        {% if identidad %}
+            <div class="usuario">
+                <span class="usuario__avatar" aria-hidden="true">{{ identidad.nombre|iniciales }}</span>
+                <span class="usuario__datos">
+                    <span class="usuario__nombre">{{ identidad.nombre }}</span>
+                    <span class="usuario__rol">{{ identidad.rol }}</span>
+                </span>
+                <a class="usuario__salir" href="{{ identidad.salir }}" title="{{ identidad.texto }}">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>
+                    </svg>
+                    <span>{{ identidad.texto }}</span>
+                </a>
+            </div>
+        {% endif %}
+
+    </div>
+</header>
