@@ -251,6 +251,65 @@ h1, p {
     transform: translateX(3px);
 }
 
+/* Variante sin relleno, para la opción que no es la principal ("Cancelar") */
+.boton-acceso--secundario {
+    color: var(--acceso-texto);
+    background-color: transparent;
+    border: 1px solid var(--acceso-linea);
+}
+
+.boton-acceso--secundario:hover {
+    background-color: rgba(255, 255, 255, .06);
+    border-color: var(--acceso-linea-foco);
+}
+
+/* Dos botones lado a lado: Cancelar | Confirmar */
+.acciones-acceso {
+    display: grid;
+    grid-template-columns: 1fr 1.6fr;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.acciones-acceso .boton-acceso {
+    margin-top: 0;
+}
+
+.tarjeta-acceso__pregunta {
+    margin-top: 24px;
+    font-size: .9375rem;
+    font-weight: 500;
+    text-align: center;
+}
+
+/* Cuándo se abrió la otra sesión */
+.detalle-sesion {
+    margin: 24px 0 0;
+    padding: 12px 15px;
+    font-size: .8125rem;
+    border: 1px solid var(--acceso-borde);
+    border-radius: 6px;
+    background-color: rgba(255, 255, 255, .03);
+}
+
+.detalle-sesion__fila {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.detalle-sesion__fila + .detalle-sesion__fila {
+    margin-top: 6px;
+}
+
+.detalle-sesion dt {
+    color: var(--acceso-texto-suave);
+}
+
+.detalle-sesion dd {
+    margin: 0;
+}
+
 .enlace-acceso {
     color: var(--acceso-texto);
     transition: color .15s ease;
@@ -275,5 +334,13 @@ h1, p {
 
     .formulario-acceso {
         margin-top: 26px;
+    }
+
+    .acciones-acceso {
+        grid-template-columns: 1fr;
+    }
+
+    .acciones-acceso .boton-acceso--secundario {
+        order: 2;
     }
 }

@@ -2,15 +2,22 @@
 VISTAS de cuentas: entrar, salir, el reparto por rol y la gestión del personal.
 """
 
+from datetime import timedelta
+
 from django.contrib import messages
 from django.contrib.auth import login, logout, update_session_auth_hash
 from django.shortcuts import redirect, render
+from django.utils import timezone
 from django.utils.html import format_html
 from django.views.decorators.http import require_POST
 
 from .forms import LoginForm, UsuarioForm
 from .models import Rol, SesionActiva, Usuario
 from .permisos import admin_requerido, sesion_requerida
+
+# Usuario que ya escribió bien sus datos y falta que confirme si cierra la otra sesión
+PENDIENTE = 'login_pendiente'
+MINUTOS_PARA_CONFIRMAR = 5
 
 
 # Entrar y salir
@@ -26,16 +33,62 @@ def entrar(request):
         usuario = form.usuario
         abierta = SesionActiva.objects.filter(usuario=usuario).first()
 
-        # REGLA DE ACCESO ÚNICO: si la cuenta ya está abierta en otro navegador, no se
-        # deja entrar. Si es ESTE mismo navegador, no es una segunda sesión y pasa.
+        # REGLA DE ACCESO ÚNICO: si la cuenta ya está abierta en otro navegador, antes
+        # de entrar se pregunta si se cierra aquella. Si es ESTE mismo navegador, no es
+        # una segunda sesión y pasa directo.
         if abierta is not None and not abierta.es_de(request.session.session_key):
-            messages.error(request, 'Esta cuenta ya tiene la sesión iniciada en otro dispositivo.')
-        else:
-            login(request, usuario)   # regenera la clave de sesión contra fijación de sesión
-            SesionActiva.abrir(usuario, request.session.session_key)
-            return redirect('cuentas:inicio')
+            hasta = timezone.now() + timedelta(minutes=MINUTOS_PARA_CONFIRMAR)
+            request.session[PENDIENTE] = {'usuario': str(usuario.pk), 'hasta': hasta.timestamp()}
+            return redirect('cuentas:confirmar_sesion')
+
+        _iniciar_sesion(request, usuario)
+        return redirect('cuentas:inicio')
 
     return render(request, 'cuentas/login.html', {'form': form})
+
+
+def confirmar_sesion(request):
+    """
+    La cuenta ya estaba abierta en otro dispositivo.
+    GET: pregunta qué hacer. POST: "Cancelar" o "Cerrar la otra sesión y entrar".
+    """
+    if request.user.is_authenticated:
+        return redirect('cuentas:inicio')
+
+    # Solo llega aquí quien acaba de escribir bien su correo y su contraseña
+    pendiente = request.session.get(PENDIENTE)
+    usuario = None
+    if pendiente and pendiente['hasta'] > timezone.now().timestamp():
+        usuario = Usuario.objects.filter(pk=pendiente['usuario'], activo=True).select_related('rol').first()
+
+    if usuario is None:
+        request.session.pop(PENDIENTE, None)
+        messages.error(request, 'La confirmación caducó. Vuelve a iniciar sesión.')
+        return redirect('cuentas:login')
+
+    if request.method == 'POST':
+        if request.POST.get('accion') == 'cerrar_otra':
+            # Al registrar esta sesión, la del otro dispositivo deja de ser válida:
+            # en su siguiente clic el middleware lo saca con un aviso.
+            _iniciar_sesion(request, usuario)
+            messages.success(request, 'Se cerró la sesión del otro dispositivo.')
+            return redirect('cuentas:inicio')
+
+        request.session.pop(PENDIENTE, None)
+        messages.error(request, 'No se inició sesión. La sesión del otro dispositivo sigue abierta.')
+        return redirect('cuentas:login')
+
+    return render(request, 'cuentas/confirmar_sesion.html', {
+        'usuario': usuario,
+        'sesion': SesionActiva.objects.filter(usuario=usuario).first(),
+    })
+
+
+def _iniciar_sesion(request, usuario):
+    """Entra y registra este navegador como LA sesión de la cuenta."""
+    request.session.pop(PENDIENTE, None)
+    login(request, usuario)   # regenera la clave de sesión contra fijación de sesión
+    SesionActiva.abrir(usuario, request.session.session_key)
 
 
 def salir(request):

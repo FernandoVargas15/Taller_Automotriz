@@ -1,0 +1,38 @@
+{% extends 'base_acceso.html' %}
+
+{% block contenido %}
+<section class="tarjeta-acceso" aria-labelledby="titulo-confirmar">
+
+    <h1 class="tarjeta-acceso__titulo" id="titulo-confirmar">Ya tienes una sesión abierta</h1>
+    <p class="tarjeta-acceso__nota">
+        {{ usuario.nombre }}, tu cuenta está iniciada en otro dispositivo o navegador.
+        Solo puede estar abierta en un lugar a la vez.
+    </p>
+
+    {% if sesion %}
+        <dl class="detalle-sesion">
+            <div class="detalle-sesion__fila">
+                <dt>Inició sesión</dt>
+                <dd>{{ sesion.iniciada_en|date:'d/m/Y H:i' }}</dd>
+            </div>
+            <div class="detalle-sesion__fila">
+                <dt>Última actividad</dt>
+                <dd>{{ sesion.ultima_actividad|date:'d/m/Y H:i' }}</dd>
+            </div>
+        </dl>
+    {% endif %}
+
+    <p class="tarjeta-acceso__pregunta">¿Quieres cerrar la sesión del otro dispositivo y entrar aquí?</p>
+
+    <form method="post" action="{% url 'cuentas:confirmar_sesion' %}" class="acciones-acceso">
+        {% csrf_token %}
+        <button class="boton-acceso boton-acceso--secundario" type="submit" name="accion" value="cancelar">
+            Cancelar
+        </button>
+        <button class="boton-acceso" type="submit" name="accion" value="cerrar_otra">
+            Cerrar la otra sesión y entrar
+        </button>
+    </form>
+
+</section>
+{% endblock %}

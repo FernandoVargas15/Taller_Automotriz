@@ -139,16 +139,7 @@ class Usuario(AbstractBaseUser):
 
 class SesionActiva(models.Model):
     """
-    REGLA DE ACCESO ÚNICO: una cuenta solo puede estar abierta en un navegador
-    o dispositivo a la vez. usuario es OneToOne (UNIQUE), así que la regla la
-    sostiene la base de datos, no la confianza en el código.
-
-    Se guarda el SHA-256 de la clave de sesión de Django, nunca la clave en
-    claro: la tabla sirve para comparar, no para suplantar.
-
-    UNA SESIÓN ABIERTA NO CADUCA POR SÍ SOLA. Termina cuando su dueño pulsa
-    "Cerrar sesión", cuando el administrador la libera o cuando el propio
-    usuario entra de nuevo desde otro dispositivo.
+    REGLA DE ACCESO ÚNICO: un usuario solo puede tener una sesión abierta a la vez.
     """
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -182,10 +173,7 @@ class SesionActiva(models.Model):
 
     @classmethod
     def refrescar(cls, usuario_id, clave_sesion: str | None) -> bool:
-        """
-        ¿Sigue siendo esta la sesión registrada del usuario? De paso anota la
-        hora de actividad: una sola consulta comprueba y actualiza.
-        """
+        """Actualiza la fecha de última actividad. Devuelve True si la sesión sigue siendo válida."""
         if clave_sesion is None:
             return False
 

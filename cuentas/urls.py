@@ -7,6 +7,7 @@ app_name = 'cuentas'
 urlpatterns = [
     path('', views.inicio, name='inicio'),
     path('login/', views.entrar, name='login'),
+    path('login/confirmar/', views.confirmar_sesion, name='confirmar_sesion'),
     path('salir/', views.salir, name='salir'),
 
     # Solo administrador
