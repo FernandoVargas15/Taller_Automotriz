@@ -49,8 +49,8 @@
             <p class="bloque__nota">Con el folio y este teléfono consultará el avance de su auto.</p>
 
             <div class="campos">
-                {% include 'taller/parciales/campo.html' with campo=form.cliente_nombre etiqueta='Nombre' requerido=True %}
-                {% include 'taller/parciales/campo.html' with campo=form.cliente_telefono etiqueta='Teléfono' requerido=True %}
+                {% include 'parciales/campo.html' with campo=form.cliente_nombre etiqueta='Nombre' requerido=True %}
+                {% include 'parciales/campo.html' with campo=form.cliente_telefono etiqueta='Teléfono' requerido=True %}
             </div>
         </div>
 
@@ -60,11 +60,11 @@
             <p class="bloque__nota">Marca y modelo son obligatorios; el resto ayuda a reconocerlo.</p>
 
             <div class="campos">
-                {% include 'taller/parciales/campo.html' with campo=form.marca etiqueta='Marca' requerido=True %}
-                {% include 'taller/parciales/campo.html' with campo=form.modelo etiqueta='Modelo' requerido=True %}
-                {% include 'taller/parciales/campo.html' with campo=form.anio etiqueta='Año' %}
-                {% include 'taller/parciales/campo.html' with campo=form.color etiqueta='Color' %}
-                {% include 'taller/parciales/campo.html' with campo=form.placas etiqueta='Placas' %}
+                {% include 'parciales/campo.html' with campo=form.marca etiqueta='Marca' requerido=True %}
+                {% include 'parciales/campo.html' with campo=form.modelo etiqueta='Modelo' requerido=True %}
+                {% include 'parciales/campo.html' with campo=form.anio etiqueta='Año' %}
+                {% include 'parciales/campo.html' with campo=form.color etiqueta='Color' %}
+                {% include 'parciales/campo.html' with campo=form.placas etiqueta='Placas' %}
             </div>
         </div>
 
@@ -74,12 +74,12 @@
             <p class="bloque__nota">El área se puede ir cambiando después desde la bitácora.</p>
 
             <div class="campos">
-                {% include 'taller/parciales/campo.html' with campo=form.area etiqueta='Área actual' requerido=True %}
+                {% include 'parciales/campo.html' with campo=form.area etiqueta='Área actual' requerido=True %}
 
                 {% if form.fields.asignado_a.queryset.exists %}
-                    {% include 'taller/parciales/campo.html' with campo=form.asignado_a etiqueta='Asignado a' %}
+                    {% include 'parciales/campo.html' with campo=form.asignado_a etiqueta='Asignado a' %}
                 {% else %}
-                    {% include 'taller/parciales/campo.html' with campo=form.asignado_a etiqueta='Asignado a' ayuda='Aún no hay mecánicos ni hojalateros activos para asignar.' %}
+                    {% include 'parciales/campo.html' with campo=form.asignado_a etiqueta='Asignado a' ayuda='Aún no hay mecánicos ni hojalateros activos para asignar.' %}
                 {% endif %}
             </div>
         </div>

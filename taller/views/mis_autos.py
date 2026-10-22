@@ -32,11 +32,11 @@ def _vehiculo_asignado(request, id):
 
 
 @de_taller
-def mis_autos(request):
+def lista(request):
     """Los autos que le asignaron; los que siguen en el taller primero."""
     vehiculos = list(Vehiculo.objects.con_relaciones().filter(asignado_a=request.user).en_orden())
 
-    return render(request, 'taller/taller/mis_autos.html', {
+    return render(request, 'taller/mis_autos/lista.html', {
         'vehiculos': vehiculos,
         'en_taller': sum(1 for v in vehiculos if not v.esta_entregado),
     })
@@ -53,7 +53,7 @@ def vehiculo(request, id):
     if respuesta is not None:
         return respuesta
 
-    return render(request, 'taller/taller/vehiculo.html', {
+    return render(request, 'taller/mis_autos/vehiculo.html', {
         'vehiculo': auto,
         'entradas': Bitacora.de_vehiculo(auto),
         'areas': Area.de_trabajo(),

@@ -83,6 +83,8 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'config.urls'
 
+# Todos los templates (la "T" de MVT) viven en templates/, con una carpeta por app:
+# templates/cuentas/, templates/taller/, templates/reportes/ y lo compartido en la raíz.
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',

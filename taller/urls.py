@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .views import consulta, panel, taller, vehiculos
+from .views import consulta, mis_autos, panel, vehiculos
 
 app_name = 'taller'
 
@@ -18,9 +18,9 @@ urlpatterns = [
     path('vehiculos/bitacora/<uuid:id>/eliminar/', vehiculos.bitacora_eliminar, name='bitacora_eliminar'),  # POST, admin
 
     # Taller: mecánico y hojalatero / pintor, solo sus autos asignados
-    path('taller/', taller.mis_autos, name='mis_autos'),
-    path('taller/vehiculo/<uuid:id>/', taller.vehiculo, name='vehiculo'),
-    path('taller/vehiculo/<uuid:id>/area/', taller.cambiar_area, name='vehiculo_area'),       # POST
+    path('taller/', mis_autos.lista, name='mis_autos'),
+    path('taller/vehiculo/<uuid:id>/', mis_autos.vehiculo, name='vehiculo'),
+    path('taller/vehiculo/<uuid:id>/area/', mis_autos.cambiar_area, name='vehiculo_area'),       # POST
 
     # Cliente: sin cuenta, entra con folio + teléfono
     path('consulta/', consulta.acceso, name='consulta'),
